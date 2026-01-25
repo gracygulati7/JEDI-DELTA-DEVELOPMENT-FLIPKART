@@ -1,7 +1,5 @@
 package com.flipfit.bean;
-
 public class FlipFitUser {
-
     protected int userId;
     protected String fullName;
     protected String email;
@@ -18,11 +16,17 @@ public class FlipFitUser {
         this.fullName = fullName;
     }
 
-    public int getUserId() {
-        return userId;
-    }
+    // Getters and Setters
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public int getPincode() { return pincode; }
+    public void setPincode(int pincode) { this.pincode = pincode; }
+
 }

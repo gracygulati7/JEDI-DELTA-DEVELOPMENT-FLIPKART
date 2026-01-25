@@ -1,17 +1,15 @@
 package com.flipfit.bean;
 
-public class FlipFitGymOwner {
+public class FlipFitGymOwner  extends FlipFitUser{
 
-    private int ownerId;
-    private String name;
     private String pan;
     private String aadhaar;
     private String gstin;
     private boolean isValidated;
 
     public FlipFitGymOwner(int ownerId, String name, String pan, String aadhaar, String gstin) {
-        this.ownerId = ownerId;
-        this.name = name;
+        this.userId = ownerId;
+        this.fullName = name;
         this.pan = pan;
         this.aadhaar = aadhaar;
         this.gstin = gstin;
@@ -19,11 +17,11 @@ public class FlipFitGymOwner {
     }
 
     public int getOwnerId() {
-        return ownerId;
+        return this.userId;
     }
 
     public String getName() {
-        return name;
+        return this.fullName;
     }
 
     public boolean isValidated() {

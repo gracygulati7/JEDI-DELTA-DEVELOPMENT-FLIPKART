@@ -6,10 +6,12 @@ public class FlipFitCustomer extends FlipFitUser {
     private int paymentType;     // e.g. 1 = Card, 2 = UPI
     private String paymentInfo;  // card/upi details
 
-    public FlipFitCustomer(int userId, String fullName) {
+    public FlipFitCustomer(int userId, String fullName, int pincode, String city) {
         this.userId = userId;
         this.fullName = fullName;
         this.role = "CUSTOMER";
+        this.pincode = pincode;
+        this.city = city ;
     }
 
     // --- getters & setters ---
