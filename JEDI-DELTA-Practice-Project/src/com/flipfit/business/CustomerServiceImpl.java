@@ -1,5 +1,4 @@
 package com.flipfit.business;
-import com.flipfit.bean.Booking;
 
 public class CustomerServiceImpl implements CustomerService {
     @Override

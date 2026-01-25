@@ -1,6 +1,10 @@
 package com.flipfit.business;
 
-public interface BookingService(){
-    public void createBooking();
-    public void displayBookings(int userID);
+import com.flipfit.bean.Booking;
+import java.util.List;
+
+public interface BookingService {
+    Booking createBooking(int userId, int slotId);
+    List<Booking> getBookingsByUserId(int userId);
+    void cancelBooking(int bookingId);
 }

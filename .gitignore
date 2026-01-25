@@ -1,1 +1,53 @@
 /.metadata/
+# Compiled class files
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Eclipse IDE
+.classpath
+.project
+.settings/
+*.pydevproject
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+
+# Build output
+bin/
+build/
+target/
+out/
+
+# Runtime files
+*.log
+*.pid
+*.log.*
+
+# OS specific
+Thumbs.db
+
+# Backup files
+*.bak
+*~
+*.swp
