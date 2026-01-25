@@ -12,11 +12,11 @@ public class FlipFitGymCenter {
     private String city;
     private String state;
     private int pincode;
-
     private List<Slot> slots = new ArrayList<>();
 
-    public FlipFitGymCenter(int centerId, String city, String state, int pincode, int capacity) {
+    public FlipFitGymCenter(int centerId, int ownerId, String city, String state, int pincode, int capacity) {
         this.centerId = centerId;
+        this.ownerId = ownerId;
         this.city = city;
         this.state = state;
         this.pincode = pincode;
@@ -25,8 +25,14 @@ public class FlipFitGymCenter {
     }
 
     public int getCenterId() { return centerId; }
+    public int getOwnerId() { return ownerId; }
+    public int getPincode() { return pincode; }
+    public String getCity() { return city; }
+    public String getState() { return state; }
+    public int getCapacity() { return capacity; }
     public List<Slot> getSlots() { return slots; }
-    public void addSlot(Slot slot) { slots.add(slot); }
+
+    public void addSlot(Slot slot) { this.slots.add(slot); }
 
     @Override
     public String toString() {
