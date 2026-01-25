@@ -59,11 +59,11 @@ public class AdminServiceImpl implements AdminService {
     // -------- REQUIRED FUNCTIONS --------
 
     @Override
-    public void addGymCenter(int centerId, String city, String state,
+    public void addGymCenter(int centerId, String gymName, String city, String state,
                              int pincode, int capacity) {
 
         FlipFitGymCenter center =
-                new FlipFitGymCenter(centerId, city, state, pincode, capacity);
+                new FlipFitGymCenter(centerId, gymName, city, state, pincode, capacity);
         centers.put(centerId, center);
         System.out.println("Gym Center added");
     }

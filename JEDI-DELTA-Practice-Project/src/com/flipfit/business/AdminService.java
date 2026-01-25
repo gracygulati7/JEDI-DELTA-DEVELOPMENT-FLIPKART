@@ -9,7 +9,7 @@ public interface AdminService {
     void viewFFCustomers();
 
     // REQUIRED by assignment
-    void addGymCenter(int centerId, String city, String state, int pincode, int capacity);
+    void addGymCenter(int centerId, String gymName, String city, String state, int pincode, int capacity);
     void viewGymCenters();
 
     void addSlotInfo(int centerId, int slotId, int startTime, int seats);
