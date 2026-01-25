@@ -7,13 +7,16 @@ import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.FlipFitGymOwner;
 import com.flipfit.bean.Slot;
 import com.flipfit.dao.CustomerDAO;
+import com.flipfit.dao.GymCentreDAO;
+import com.flipfit.dao.SlotDAO;
 
 public class AdminServiceImpl implements AdminService {
 
     // HARD-CODED DATA STORES (Collections API)
     private Map<Integer, FlipFitGymOwner> owners = new HashMap<>();
-    private Map<Integer, FlipFitGymCenter> centers = new HashMap<>();
     private final CustomerDAO customerDAO = CustomerDAO.getInstance();
+    private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
+    private final SlotDAO slotDAO = SlotDAO.getInstance();
 
     public AdminServiceImpl() {
         // Owners
@@ -70,25 +73,26 @@ public class AdminServiceImpl implements AdminService {
 
         FlipFitGymCenter center =
                 new FlipFitGymCenter(centerId, gymName, city, state, pincode, capacity);
-        centers.put(centerId, center);
+        gymCentreDAO.addGymCentre(center);
         System.out.println("Gym Center added");
     }
 
     @Override
     public void viewGymCenters() {
         System.out.println("\n--- Gym Centers ---");
-        for (FlipFitGymCenter c : centers.values()) {
+        for (FlipFitGymCenter c : gymCentreDAO.getGymCentres()) {
             System.out.println(c);
         }
     }
 
     @Override
     public void addSlotInfo(int centerId, int slotId,
-                            int startTime, int seats) {
+                            String startTime, String endTime, int seats) {
 
-        FlipFitGymCenter center = centers.get(centerId);
+        FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
         if (center != null) {
-            center.addSlot(new Slot(slotId, centerId, java.time.LocalDate.now(), startTime, seats));
+            Slot slot = new Slot(slotId, centerId, java.time.LocalDate.now(), startTime, endTime, seats);
+            slotDAO.addSlot(slot);
             System.out.println("Slot added");
         } else {
             System.out.println("Center not found");
@@ -97,11 +101,16 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void viewSlots(int centerId) {
-        FlipFitGymCenter center = centers.get(centerId);
+        FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
         if (center != null) {
-            System.out.println("\n--- Slots ---");
-            for (Slot s : center.getSlots()) {
-                System.out.println(s);
+            System.out.println("\n--- Slots for Center " + centerId + " ---");
+            List<Slot> slots = slotDAO.getSlotsByCenterId(centerId);
+            if (slots.isEmpty()) {
+                System.out.println("No slots found for this center.");
+            } else {
+                for (Slot s : slots) {
+                    System.out.println(s);
+                }
             }
         } else {
             System.out.println("Center not found");

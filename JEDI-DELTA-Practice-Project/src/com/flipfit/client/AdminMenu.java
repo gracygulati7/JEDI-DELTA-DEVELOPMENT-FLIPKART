@@ -1,13 +1,20 @@
 package com.flipfit.client;
 
 import java.util.Scanner;
+import java.util.List;
 import com.flipfit.business.AdminService;
 import com.flipfit.business.AdminServiceImpl;
 import com.flipfit.helper.InputValidator;
+import com.flipfit.dao.GymCentreDAO;
+import com.flipfit.dao.SlotDAO;
+import com.flipfit.bean.FlipFitGymCenter;
+import com.flipfit.bean.Slot;
 
 public class AdminMenu {
 
     private AdminService adminService = new AdminServiceImpl();
+    private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
+    private final SlotDAO slotDAO = SlotDAO.getInstance();
 
     public void showMenu(Scanner sc) {
 
@@ -61,7 +68,7 @@ public class AdminMenu {
                     break;
 
                 case 5:
-                    adminService.viewGymCenters();
+                    viewGymCentersWithSlots();
                     break;
 
                 case 6:
@@ -69,12 +76,14 @@ public class AdminMenu {
                         centerId = InputValidator.readInt(sc);
                     System.out.print("Slot ID: ");
                         int slotId = InputValidator.readInt(sc);
-                    System.out.print("Start Time: ");
-                        int startTime = InputValidator.readInt(sc);
+                    System.out.print("Start Time (HH:MM format, e.g., 5:30, 14:45): ");
+                        String startTime = sc.next();
+                    System.out.print("End Time (HH:MM format, e.g., 6:30, 15:45): ");
+                        String endTime = sc.next();
                     System.out.print("Seat Capacity: ");
                         int seats = InputValidator.readInt(sc);
 
-                    adminService.addSlotInfo(centerId, slotId, startTime, seats);
+                    adminService.addSlotInfo(centerId, slotId, startTime, endTime, seats);
                     break;
 
                 case 7:
@@ -92,4 +101,34 @@ public class AdminMenu {
             }
         } while (choice != 0);
     }
+
+    private void viewGymCentersWithSlots() {
+        System.out.println("\n===== ALL GYM CENTERS WITH SLOTS =====");
+        List<FlipFitGymCenter> centers = gymCentreDAO.getGymCentres();
+        
+        if (centers.isEmpty()) {
+            System.out.println("No gym centers found.");
+            return;
+        }
+        
+        for (FlipFitGymCenter center : centers) {
+            System.out.println("\n" + center);
+            
+            // Get and display slots for this center
+            List<Slot> slots = slotDAO.getSlotsByCenterId(center.getGymId());
+            if (slots.isEmpty()) {
+                System.out.println("  └─ No slots available for this center");
+            } else {
+                System.out.println("  └─ Slots:");
+                for (Slot slot : slots) {
+                    String dateStr = (slot.getDate() != null) ? slot.getDate().toString() : "N/A";
+                    System.out.println("     • Slot ID: " + slot.getSlotId() + 
+                        " | Date: " + dateStr + 
+                        " | Time: " + slot.getStartTime() + " - " + slot.getEndTime() + 
+                        " | Available Seats: " + slot.getSeatsAvailable());
+                }
+            }
+        }
+    }
 }
+    

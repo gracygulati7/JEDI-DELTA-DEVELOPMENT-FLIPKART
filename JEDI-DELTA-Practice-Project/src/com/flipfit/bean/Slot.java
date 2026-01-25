@@ -20,12 +20,20 @@ public class Slot {
         this.centerId = centerId;
     }
 
-    public int getStartTime() {
+    public String getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(int startTime) {
+    public void setStartTime(String startTime) {
         this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
     }
 
     public int getSeatsAvailable() {
@@ -39,14 +47,16 @@ public class Slot {
     private int slotId;
     private int centerId;
     private LocalDate date;
-    private int startTime;
+    private String startTime;
+    private String endTime;
     private int seatsAvailable;
 
-    public Slot(int slotId, int centerId, LocalDate date, int startTime, int seatsAvailable) {
+    public Slot(int slotId, int centerId, LocalDate date, String startTime, String endTime, int seatsAvailable) {
         this.slotId = slotId;
         this.centerId = centerId;
         this.date = date;
         this.startTime = startTime;
+        this.endTime = endTime;
         this.seatsAvailable = seatsAvailable;
     }
 
@@ -62,7 +72,7 @@ public class Slot {
     public String toString() {
         return "SlotId=" + slotId +
                ", Date=" + (date != null ? date.toString() : "N/A") +
-               ", StartTime=" + startTime +
+               ", Time: " + startTime + " - " + endTime +
                ", SeatsAvailable=" + seatsAvailable;
     }
 }

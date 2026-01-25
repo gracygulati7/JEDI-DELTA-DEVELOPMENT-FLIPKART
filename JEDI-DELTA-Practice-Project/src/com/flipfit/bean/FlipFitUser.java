@@ -25,4 +25,10 @@ public class FlipFitUser {
     public String getFullName() {
         return fullName;
     }
+    public String getRole() {
+    	return role;
+    }
+    public void setRole(String role) {
+    	this.role=role;
+    }
 }

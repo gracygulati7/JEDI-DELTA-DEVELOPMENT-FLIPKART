@@ -84,7 +84,7 @@ public class CustomerMenu {
                         " | Gym: " + gymName + 
                         " | Date: " + dateStr +
                         " | Slot ID: " + slot.getSlotId() + 
-                        " | Time: " + slot.getStartTime() + ":00hrs" +
+                        " | Time: " + slot.getStartTime() + "-" +slot.getEndTime()+
                         " | Seats: " + slot.getSeatsAvailable());
                 } else {
                     System.out.println("\nBooking #" + booking.getBookingId() + " | Slot #" + booking.getSlotId() + " (slot not found)");
@@ -127,7 +127,7 @@ public class CustomerMenu {
             com.flipfit.bean.FlipFitGymCenter gym = gymDAO.getGymCentreById(slot.getCenterId());
             String gymName = (gym != null) ? gym.getGymName() : "Unknown Gym";
             System.out.println("Slot ID: " + slot.getSlotId() + " | Gym: " + gymName + 
-                " | Time: " + slot.getStartTime() + ":00hrs | Available Seats: " + slot.getSeatsAvailable());
+                " | Time: " + slot.getStartTime() + "-"+slot.getEndTime()+"| Available Seats: " + slot.getSeatsAvailable());
         }
         
         System.out.print("\nEnter Slot ID to book: ");

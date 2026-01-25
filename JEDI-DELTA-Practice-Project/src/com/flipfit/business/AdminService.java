@@ -1,5 +1,4 @@
 package com.flipfit.business;
-
 import com.flipfit.bean.FlipFitCustomer;
 
 public interface AdminService {
@@ -14,7 +13,7 @@ public interface AdminService {
     void addGymCenter(int centerId, String gymName, String city, String state, int pincode, int capacity);
     void viewGymCenters();
 
-    void addSlotInfo(int centerId, int slotId, int startTime, int seats);
+    void addSlotInfo(int centerId, int slotId, String startTime,String endTime, int seats);
     void viewSlots(int centerId);
 
     // Utility: lookup customer by id

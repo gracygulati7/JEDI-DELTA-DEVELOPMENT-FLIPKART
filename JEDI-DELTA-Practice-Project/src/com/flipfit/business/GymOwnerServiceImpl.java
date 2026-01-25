@@ -1,5 +1,5 @@
 package com.flipfit.business;
-
+import com.flipfit.bean.TimeFrame;
 import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.Slot;
 import java.time.LocalDate;
@@ -49,8 +49,8 @@ public class GymOwnerServiceImpl implements GymOwnerService {
     }
 
     @Override
-    public void addSlot(int centerId, int slotId, LocalDate date, int startTime, int seats) {
-        Slot slot = new Slot(slotId, centerId, date, startTime, seats);
+    public void addSlot(int centerId, int slotId, LocalDate date, String startTime,String endTime,int seats) {
+        Slot slot = new Slot(slotId, centerId, date, startTime,endTime, seats);
         slotDAO.addSlot(slot);
         System.out.println("✓ Slot added successfully for Center ID: " + centerId);
     }
@@ -105,7 +105,7 @@ public class GymOwnerServiceImpl implements GymOwnerService {
                     Slot slot = slotDAO.getSlotById(booking.getSlotId());
                     if (slot != null) {
                         String dateStr = (slot.getDate() != null) ? slot.getDate().toString() : "N/A";
-                        System.out.println("  - Booking #" + booking.getBookingId() + ": Slot " + slot.getSlotId() + " on " + dateStr + " at " + slot.getStartTime() + ":00hrs");
+                        System.out.println("  - Booking #" + booking.getBookingId() + ": Slot " + slot.getSlotId() + " on " + dateStr + " at " + slot.getStartTime() + "-"+slot.getEndTime());
                     } else {
                         System.out.println("  - Booking #" + booking.getBookingId() + ": Slot " + booking.getSlotId());
                     }

@@ -54,4 +54,13 @@ public class GymCentreDAO {
         }
         return null;
     }
+
+    public FlipFitGymCenter getGymCentreByGymId(int gymId) {
+        for (FlipFitGymCenter centre : gymCentres) {
+            if (centre.getGymId() == gymId) {
+                return centre;
+            }
+        }
+        return null;
+    }
 }
