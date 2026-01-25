@@ -6,22 +6,23 @@ import com.flipfit.bean.FlipFitCustomer;
 import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.FlipFitGymOwner;
 import com.flipfit.bean.Slot;
+import com.flipfit.dao.CustomerDAO;
 
 public class AdminServiceImpl implements AdminService {
 
     // HARD-CODED DATA STORES (Collections API)
     private Map<Integer, FlipFitGymOwner> owners = new HashMap<>();
     private Map<Integer, FlipFitGymCenter> centers = new HashMap<>();
-    private List<FlipFitCustomer> customers = new ArrayList<>();
+    private final CustomerDAO customerDAO = CustomerDAO.getInstance();
 
     public AdminServiceImpl() {
         // Owners
         owners.put(1, new FlipFitGymOwner(1, "PAN1", "AAD1", "GST1", null));
         owners.put(2, new FlipFitGymOwner(2, "PAN2", "AAD2", "GST2", null));
 
-        // Customers
-        customers.add(new FlipFitCustomer(101, "Amit"));
-        customers.add(new FlipFitCustomer(102, "Neha"));
+        // Seed customers into CustomerDAO
+        customerDAO.addCustomer("Amit");
+        customerDAO.addCustomer("Neha");
     }
 
     // -------- Diagram Functions --------
@@ -51,19 +52,24 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public void viewFFCustomers() {
         System.out.println("\n--- FlipFit Customers ---");
-        for (FlipFitCustomer c : customers) {
+        for (FlipFitCustomer c : customerDAO.getAllCustomers()) {
             System.out.println(c);
         }
+    }
+
+    @Override
+    public FlipFitCustomer getCustomerById(int userId) {
+        return customerDAO.getCustomerById(userId);
     }
 
     // -------- REQUIRED FUNCTIONS --------
 
     @Override
-    public void addGymCenter(int centerId, String city, String state,
+    public void addGymCenter(int centerId, String gymName, String city, String state,
                              int pincode, int capacity) {
 
         FlipFitGymCenter center =
-                new FlipFitGymCenter(centerId, city, state, pincode, capacity);
+                new FlipFitGymCenter(centerId, gymName, city, state, pincode, capacity);
         centers.put(centerId, center);
         System.out.println("Gym Center added");
     }
@@ -82,7 +88,7 @@ public class AdminServiceImpl implements AdminService {
 
         FlipFitGymCenter center = centers.get(centerId);
         if (center != null) {
-            center.addSlot(new Slot(slotId, centerId, startTime, seats));
+            center.addSlot(new Slot(slotId, centerId, java.time.LocalDate.now(), startTime, seats));
             System.out.println("Slot added");
         } else {
             System.out.println("Center not found");

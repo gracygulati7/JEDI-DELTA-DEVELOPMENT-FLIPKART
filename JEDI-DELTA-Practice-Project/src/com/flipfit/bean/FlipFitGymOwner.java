@@ -26,11 +26,28 @@ public class FlipFitGymOwner {
         return name;
     }
 
+    public String getPan() {
+        return pan;
+    }
+
+    public String getAadhaar() {
+        return aadhaar;
+    }
+
+    public String getGstin() {
+        return gstin;
+    }
+
     public boolean isValidated() {
         return isValidated;
     }
 
     public void setValidated(boolean validated) {
         isValidated = validated;
+    }
+
+    @Override
+    public String toString() {
+        return "GymOwner [OwnerId=" + ownerId + ", Name=" + name + ", IsValidated=" + isValidated + "]";
     }
 }
