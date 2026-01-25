@@ -63,20 +63,21 @@ public class GymOwnerServiceImpl implements GymOwnerService {
     }
 
     @Override
-    public List<Slot> getBookedSlots(int centreId) {
-        List<Slot> bookedSlots = new ArrayList<>();
+    public List<Slot> getFullyBookedSlots(int centreId) {
+        List<Slot> fullyBookedSlots = new ArrayList<>();
         FlipFitGymCenter center = centerRepo.getCenterById(centreId);
 
         if (center != null) {
             for (Slot slot : center.getSlots()) {
-                if (slot.isBooked()) {
-                    bookedSlots.add(slot);
+                if (slot.getBookedSeatsCount() >= slot.getTotalCapacity()) {
+                    fullyBookedSlots.add(slot);
                 }
             }
         }
-        return bookedSlots;
+        return fullyBookedSlots;
     }
 
+    //shows the slots which still have available seats
     @Override
     public List<Slot> getAvailableSlots(int centreId) {
         List<Slot> availableSlots = new ArrayList<>();
@@ -84,11 +85,44 @@ public class GymOwnerServiceImpl implements GymOwnerService {
 
         if (center != null) {
             for (Slot slot : center.getSlots()) {
-                if (!slot.isBooked()) {
+                // Check if there is still space in the slot
+                if (slot.getSeatsAvailable() > 0) {
                     availableSlots.add(slot);
                 }
             }
         }
         return availableSlots;
+    }
+
+    public void getSlotSeatDetails(int centreId, int slotId) {
+        FlipFitGymCenter center = centerRepo.getCenterById(centreId);
+
+        if (center == null) {
+            System.out.println("Center not found.");
+            return;
+        }
+
+        Slot targetSlot = null;
+        for (Slot s : center.getSlots()) {
+            if (s.getSlotId() == slotId) {
+                targetSlot = s;
+                break;
+            }
+        }
+
+        if (targetSlot != null) {
+            System.out.println("--- Slot Status ---");
+            System.out.println("Slot ID         : " + slotId);
+            System.out.println("Start Time      : " + targetSlot.getStartTime() + ":00");
+            System.out.println("Seats Remaining : " + targetSlot.getSeatsAvailable());
+
+            if (targetSlot.getSeatsAvailable() == 0) {
+                System.out.println("Status          : FULLY BOOKED");
+            } else {
+                System.out.println("Status          : AVAILABLE");
+            }
+        } else {
+            System.out.println("Slot not found in this center.");
+        }
     }
 }

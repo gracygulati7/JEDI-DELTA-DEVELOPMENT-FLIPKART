@@ -1,4 +1,5 @@
 package com.flipfit.business;
+package com.flipfit.repository.*;
 
 import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.FlipFitUser;
@@ -31,17 +32,18 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void viewBookedSlots(int userId) {
-        System.out.println("\n--- Booked Slots for User ID: " + userId + " ---");
+        System.out.println("\nBooked Slots for User ID: " + userId);
         List<Slot> bookedSlots = bookingRepo.getBookedSlotsByUserId(userId);
         if (bookedSlots.isEmpty()) {
             System.out.println("No bookings found.");
         } else {
             for (Slot slot : bookedSlots) {
-                System.out.println("Booking Reference: Center ID: " + slot.getCenterId() +
-                        " | Time: " + slot.getStartTime() + ":00 hrs]");
+                System.out.println("Slot ID: " + slot.getSlotId() +
+                        " | Center ID: " + slot.getCenterId() +
+                        " | Date: " + slot.getDate() +
+                        " | Time: " + slot.getStartTime() + ":00 hrs");
             }
         }
-        System.out.println("------------------------------------------");
     }
 
     @Override
