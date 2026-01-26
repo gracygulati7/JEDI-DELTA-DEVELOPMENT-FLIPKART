@@ -127,7 +127,7 @@ public class CustomerMenu {
 			com.flipfit.dao.GymCentreDAO gymDAO = com.flipfit.dao.GymCentreDAO.getInstance();
 
 			for (Booking booking : bookings) {
-				Slot slot = slotDAO.getSlotById(booking.getSlotId());
+				Slot slot = slotDAO.getSlotById(booking.getUserId(), booking.getSlotId(), booking.getCenterId());
 				if (slot != null) {
 					String gymName = gymDAO.getGymCentreById(booking.getCenterId()).getGymName();
 					System.out.println("Booking #" + booking.getBookingId() + " | Gym: " + gymName + " | Date: "
