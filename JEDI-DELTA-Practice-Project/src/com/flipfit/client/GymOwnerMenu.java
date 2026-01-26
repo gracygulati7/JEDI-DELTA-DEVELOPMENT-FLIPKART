@@ -23,6 +23,7 @@ public class GymOwnerMenu {
             System.out.println("4. View Slots in Centre");
             System.out.println("5. View Customers");
             System.out.println("6. View My Profile");
+            System.out.println("7. Edit Profile");
             System.out.println("0. Logout");
             System.out.print("Enter your choice: ");
             choice = InputValidator.readInt(sc);
@@ -45,6 +46,9 @@ public class GymOwnerMenu {
                 break;
             case 6:
                 gymOwnerService.viewProfile(ownerId);
+                break;
+            case 7:
+                gymOwnerService.editDetails(ownerId);
                 break;
             case 0:
                 System.out.println("Logging out from Gym Owner Menu...");

@@ -1,13 +1,13 @@
 package com.flipfit.business;
 
-import java.util.List;
 import com.flipfit.bean.Slot;
+import java.util.List;
 
 public interface UserService {
 
-    boolean makeBooking(int userId, int centreId, int slotId);
+    void viewProfile(int userId);
 
-    boolean cancelBooking(int userId, int bookingId);
+    void editProfile(int userId);
 
     List<Slot> findAvailableSlots(int centreId);
 }

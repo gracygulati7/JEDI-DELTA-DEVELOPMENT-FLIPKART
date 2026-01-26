@@ -5,7 +5,7 @@ public interface NotificationService{
 
     public void sendWaitlistPromotion(int userId, int slotId,int centerId);
     
-    public void sendCancellationNotification(int userId, int slotId);
+    public void sendCancellationNotification(int userId, int slotId, int centerId);
     
     public void sendConflictWarning(int userId, String message);
     

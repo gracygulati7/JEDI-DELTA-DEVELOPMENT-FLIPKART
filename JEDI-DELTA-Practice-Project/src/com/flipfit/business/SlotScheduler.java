@@ -54,7 +54,7 @@ public class SlotScheduler {
         System.out.println("[SCHEDULER] Booking " + bookingId + " marked as cancelled");
 
         // Free up the seat
-        Slot slot = slotDAO.getSlotById(slotId,centerId);
+        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
         if (slot != null) {
             slot.setSeatsAvailable(slot.getSeatsAvailable() + 1);
             System.out.println("[SCHEDULER] Seat freed. Available seats now: " + slot.getSeatsAvailable());
@@ -81,7 +81,7 @@ public class SlotScheduler {
             return;
         }
 
-        Slot slot = slotDAO.getSlotById(slotId,centerId);
+        Slot slot = slotDAO.getSlotById(nextUserId, slotId,centerId);
         if (slot == null || slot.isFull()) {
             System.out.println("[SCHEDULER] Slot is full, re-adding customer to waitlist");
             waitlistDAO.addToWaitlist(slotId, nextUserId);
@@ -244,7 +244,7 @@ public class SlotScheduler {
         System.out.println("\n[SCHEDULER] Validating booking for User " + userId + 
                            " at Slot " + slotId + " in Center " + centerId);
 
-        Slot slot = slotDAO.getSlotById(slotId,centerId);
+        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
         if (slot == null) {
             System.out.println("[SCHEDULER] ✗ Slot not found");
             return false;
@@ -258,6 +258,13 @@ public class SlotScheduler {
         if (slot.isFull()) {
             System.out.println("[SCHEDULER] ✗ Slot is full. Adding to waitlist...");
             waitlistDAO.addToWaitlist(slotId, userId);
+            Booking waitlistedBooking = bookingDAO.createWaitlistingBooking(userId, slotId);
+            waitlistedBooking.setStatus(Booking.BookingStatus.WAITLISTED);
+            waitlistedBooking.setCenterId(centerId);
+            waitlistedBooking.setSlotDate(slot.getDate());
+            waitlistedBooking.setStartTime(slot.getStartTime());
+            waitlistedBooking.setEndTime(slot.getEndTime());
+            // bookingDAO.addWaitlistedBooking(waitlistedBooking);
             return false; // Not immediately available
         }
 
