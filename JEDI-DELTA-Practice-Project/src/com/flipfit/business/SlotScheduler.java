@@ -19,26 +19,28 @@ public class SlotScheduler {
 	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
 	public void monitorCancellations(int bookingId) {
-		Booking booking = bookingDAO.getBookingById(bookingId);
-		if (booking == null || booking.isDeleted() || booking.getStatus() == Booking.BookingStatus.CANCELLED) {
-			return;
-		}
+	    Booking booking = bookingDAO.getBookingById(bookingId);
+	    if (booking == null || booking.isDeleted() || booking.getStatus() == Booking.BookingStatus.CANCELLED) {
+	        return;
+	    }
 
-		int slotId = booking.getSlotId();
-		int centerId = booking.getCenterId();
+	    int slotId = booking.getSlotId();
+	    int centerId = booking.getCenterId();
+	    int userId = booking.getUserId(); // Get the user ID to notify them
 
-		// 1. Update Booking Status in DAO
-		bookingDAO.cancelBooking(bookingId);
+	    bookingDAO.cancelBooking(bookingId); 
+	    System.out.println("[SCHEDULER] Booking " + bookingId + " marked as cancelled");
 
-		// 2. Fetch slot using a general ID search rather than user-context search
-		Slot slot = slotDAO.getSlotById(slotId);
-		if (slot != null) {
-			slot.setSeatsAvailable(slot.getSeatsAvailable() + 1);
+	    // TRIGGER THE NOTIFICATION HERE
+	    notificationService.sendCancellationNotification(userId, slotId, centerId);
 
-			if (waitlistDAO.hasWaitlistedCustomers(slotId)) {
-				triggerWaitlistPromotion(slotId, centerId);
-			}
-		}
+	    Slot slot = slotDAO.getSlotById(slotId); 
+	    if (slot != null) {
+	        slot.setSeatsAvailable(slot.getSeatsAvailable() + 1);
+	        if (waitlistDAO.hasWaitlistedCustomers(slotId)) {
+	            triggerWaitlistPromotion(slotId, centerId);
+	        }
+	    }
 	}
 
 	public void triggerWaitlistPromotion(int slotId, int centerId) {
