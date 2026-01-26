@@ -102,7 +102,7 @@ public class GymOwnerServiceImpl implements GymOwnerService {
             if (customer != null) {
                 System.out.println("\nCustomer: " + customer.getFullName() + " (ID: " + uid + ", Contact: " + customer.getContact() + ")");
                 for (Booking booking : customerBookings.get(uid)) {
-                    Slot slot = slotDAO.getSlotById(booking.getSlotId());
+                    Slot slot = slotDAO.getSlotById(booking.getSlotId(),booking.getCenterId());
                     if (slot != null) {
                         String dateStr = (slot.getDate() != null) ? slot.getDate().toString() : "N/A";
                         System.out.println("  - Booking #" + booking.getBookingId() + ": Slot " + slot.getSlotId() + " on " + dateStr + " at " + slot.getStartTime() + "-"+slot.getEndTime());

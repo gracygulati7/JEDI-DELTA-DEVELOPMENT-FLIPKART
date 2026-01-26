@@ -7,6 +7,7 @@ import com.flipfit.business.BookingService;
 import com.flipfit.business.BookingServiceImpl;
 import com.flipfit.business.GymCentreService;
 import com.flipfit.business.GymCentreServiceImpl;
+import com.flipfit.business.NotificationServiceImpl;
 import com.flipfit.dao.GymCentreDAO;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class CustomerMenu {
     private final BookingService bookingService = new BookingServiceImpl();
     private final GymCentreService gymCentreService = new GymCentreServiceImpl();
     private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
+    private final NotificationServiceImpl notificationService = NotificationServiceImpl.getInstance();
 
     public void showMenu(Scanner sc, int userId) {
         int choice;
@@ -27,6 +29,7 @@ public class CustomerMenu {
             System.out.println("2. View My Bookings");
             System.out.println("3. Book a Slot");
             System.out.println("4. Cancel Booking");
+            System.out.println("5. View Notifications");
             System.out.println("0. Logout");
             System.out.print("Enter your choice: ");
             choice = InputValidator.readInt(sc);
@@ -42,6 +45,9 @@ public class CustomerMenu {
                     break;
                 case 4:
                     cancelBooking(sc, userId);
+                    break;
+                case 5:
+                    viewNotifications(userId);
                     break;
                 case 0:
                     System.out.println("Logging out from Customer Menu...");
@@ -75,16 +81,17 @@ public class CustomerMenu {
             com.flipfit.dao.GymCentreDAO gymDAO = com.flipfit.dao.GymCentreDAO.getInstance();
             
             for (Booking booking : bookings) {
-                com.flipfit.bean.Slot slot = slotDAO.getSlotById(booking.getSlotId());
+                com.flipfit.bean.Slot slot = slotDAO.getSlotById(booking.getSlotId(),booking.getCenterId());
                 if (slot != null) {
                     com.flipfit.bean.FlipFitGymCenter gym = gymDAO.getGymCentreById(slot.getCenterId());
                     String gymName = (gym != null) ? gym.getGymName() : "Unknown Gym";
                     String dateStr = (slot.getDate() != null) ? slot.getDate().toString() : "N/A";
-                    System.out.println("\nBooking #" + booking.getBookingId() + 
+                    
+System.out.println("\nBooking #" + booking.getBookingId() + 
                         " | Gym: " + gymName + 
                         " | Date: " + dateStr +
                         " | Slot ID: " + slot.getSlotId() + 
-                        " | Time: " + slot.getStartTime() + "-" +slot.getEndTime()+
+                        " | Time: " + slot.getStartTime() + " - " + slot.getEndTime() +
                         " | Seats: " + slot.getSeatsAvailable());
                 } else {
                     System.out.println("\nBooking #" + booking.getBookingId() + " | Slot #" + booking.getSlotId() + " (slot not found)");
@@ -94,7 +101,33 @@ public class CustomerMenu {
     }
 
     private void bookSlot(Scanner sc, int userId) {
-        System.out.print("Enter booking date (YYYY-MM-DD format, e.g., 2026-01-25): ");
+        // Step 1: Display available centers
+        System.out.println("\n===== AVAILABLE GYM CENTERS =====");
+        List<FlipFitGymCenter> gyms = gymCentreDAO.getGymCentres();
+        
+        if (gyms.isEmpty()) {
+            System.out.println("No gym centers available.");
+            return;
+        }
+        
+        for (FlipFitGymCenter gym : gyms) {
+            System.out.println("Center ID: " + gym.getGymId() + " | Name: " + gym.getGymName() + " | Location: " + gym.getLocation());
+        }
+        
+        // Step 2: Ask for center ID
+        System.out.print("\nEnter Center ID: ");
+        int centerId = InputValidator.readInt(sc);
+        
+        FlipFitGymCenter selectedCenter = gymCentreDAO.getGymCentreById(centerId);
+        if (selectedCenter == null) {
+            System.out.println("❌ Invalid Center ID!");
+            return;
+        }
+        
+        System.out.println("✓ Selected Center: " + selectedCenter.getGymName());
+        
+        // Step 3: Ask for booking date
+        System.out.print("\nEnter booking date (YYYY-MM-DD format, e.g., 2026-01-25): ");
         String dateStr = sc.next();
         java.time.LocalDate bookingDate;
         try {
@@ -104,39 +137,114 @@ public class CustomerMenu {
             return;
         }
         
-        // Show available slots for this date
-        System.out.println("\n===== AVAILABLE SLOTS FOR " + bookingDate + " =====");
+        // Step 4: Display available slots for this center and date
+        System.out.println("\n===== SLOTS FOR CENTER " + centerId + " (" + selectedCenter.getGymName() + ") ON " + bookingDate + " =====");
         com.flipfit.dao.SlotDAO slotDAO = com.flipfit.dao.SlotDAO.getInstance();
-        com.flipfit.dao.GymCentreDAO gymDAO = com.flipfit.dao.GymCentreDAO.getInstance();
         
         List<com.flipfit.bean.Slot> allSlots = slotDAO.getAllSlots();
-        java.util.List<com.flipfit.bean.Slot> availableSlotsForDate = new java.util.ArrayList<>();
+        java.util.List<com.flipfit.bean.Slot> slotsForCenterAndDate = new java.util.ArrayList<>();
+        java.util.List<com.flipfit.bean.Slot> fullSlotsForCenterAndDate = new java.util.ArrayList<>();
         
         for (com.flipfit.bean.Slot slot : allSlots) {
-            if (slot.getDate() != null && slot.getDate().equals(bookingDate) && slot.getSeatsAvailable() > 0) {
-                availableSlotsForDate.add(slot);
+            if (slot.getDate() != null && 
+                slot.getDate().equals(bookingDate) && 
+                slot.getCenterId() == centerId && 
+                !slot.isExpired()) {
+                
+                if (slot.getSeatsAvailable() > 0) {
+                    slotsForCenterAndDate.add(slot);
+                } else {
+                    fullSlotsForCenterAndDate.add(slot);
+                }
             }
         }
         
-        if (availableSlotsForDate.isEmpty()) {
-            System.out.println("No slots available for this date.");
+        // Display available slots
+        if (slotsForCenterAndDate.isEmpty() && fullSlotsForCenterAndDate.isEmpty()) {
+            System.out.println("❌ No slots available for this center on the selected date.");
             return;
         }
         
-        for (com.flipfit.bean.Slot slot : availableSlotsForDate) {
-            com.flipfit.bean.FlipFitGymCenter gym = gymDAO.getGymCentreById(slot.getCenterId());
-            String gymName = (gym != null) ? gym.getGymName() : "Unknown Gym";
-            System.out.println("Slot ID: " + slot.getSlotId() + " | Gym: " + gymName + 
-                " | Time: " + slot.getStartTime() + "-"+slot.getEndTime()+"| Available Seats: " + slot.getSeatsAvailable());
+        if (!slotsForCenterAndDate.isEmpty()) {
+            System.out.println("\n✓ AVAILABLE SLOTS:");
+            for (com.flipfit.bean.Slot slot : slotsForCenterAndDate) {
+                System.out.println("  Slot ID: " + slot.getSlotId() + 
+                    " | Center ID: " + slot.getCenterId() +
+                    " | Time: " + slot.getStartTime() + " - " + slot.getEndTime() + 
+                    " | Available Seats: " + slot.getSeatsAvailable() + "/" + slot.getTotalSeats());
+            }
+        } else {
+            System.out.println("\n❌ No available slots (all slots are full or expired for this date)");
         }
         
+        // Display full slots with waitlist option
+        if (!fullSlotsForCenterAndDate.isEmpty()) {
+            System.out.println("\n⏳ FULL SLOTS (Waitlist Available):");
+            for (com.flipfit.bean.Slot slot : fullSlotsForCenterAndDate) {
+                System.out.println("  Slot ID: " + slot.getSlotId() + 
+                    " | Center ID: " + slot.getCenterId() +
+                    " | Time: " + slot.getStartTime() + " - " + slot.getEndTime() + 
+                    " | Status: FULL (0/" + slot.getTotalSeats() + ")");
+            }
+        }
+        
+        if (slotsForCenterAndDate.isEmpty()) {
+            System.out.println("\n💡 You can still join the waitlist for full slots!");
+        }
+        
+        // Step 5: Ask for slot selection
         System.out.print("\nEnter Slot ID to book: ");
         int slotId = InputValidator.readInt(sc);
-        Booking booking = bookingService.createBooking(userId, slotId);
+        
+        // Validate slot selection
+        com.flipfit.bean.Slot selectedSlot = null;
+        boolean isFullSlot = false;
+        
+        for (com.flipfit.bean.Slot slot : slotsForCenterAndDate) {
+            if (slot.getSlotId() == slotId) {
+                selectedSlot = slot;
+                break;
+            }
+        }
+        
+        if (selectedSlot == null) {
+            for (com.flipfit.bean.Slot slot : fullSlotsForCenterAndDate) {
+                if (slot.getSlotId() == slotId) {
+                    selectedSlot = slot;
+                    isFullSlot = true;
+                    break;
+                }
+            }
+        }
+        
+        if (selectedSlot == null) {
+            System.out.println("❌ Invalid Slot ID!");
+            return;
+        }
+        
+        // Step 6: Create booking with centerId to ensure correct slot is retrieved
+        Booking booking = bookingService.createBooking(userId, slotId, centerId);
         if (booking != null) {
-            System.out.println("✓ Booking successful! Booking ID: " + booking.getBookingId());
+            if (isFullSlot) {
+                // Slot was full, customer added to waitlist
+                System.out.println("\n📋 ADDED TO WAITLIST");
+                System.out.println("  Center: " + selectedCenter.getGymName() + " (ID: " + centerId + ")");
+                System.out.println("  Date: " + bookingDate);
+                System.out.println("  Time: " + selectedSlot.getStartTime() + " - " + selectedSlot.getEndTime());
+                System.out.println("  Status: Slot is full. You're in the waitlist queue.");
+                System.out.println("  ℹ️  You'll be notified when a seat becomes available.");
+            } else {
+                // Slot had available seats, booking confirmed
+                selectedSlot.setSeatsAvailable(selectedSlot.getSeatsAvailable() - 1);
+                System.out.println("\n✓ BOOKING CONFIRMED");
+                System.out.println("  Booking ID: " + booking.getBookingId());
+                System.out.println("  Center: " + selectedCenter.getGymName() + " (ID: " + centerId + ")");
+                System.out.println("  Date: " + bookingDate);
+                System.out.println("  Time: " + selectedSlot.getStartTime() + " - " + selectedSlot.getEndTime());
+                System.out.println("  Remaining Seats: " + selectedSlot.getSeatsAvailable() + "/" + selectedSlot.getTotalSeats());
+            }
         } else {
-            System.out.println("❌ Booking failed. Slot may be full, invalid, or not available for selected date.");
+            System.out.println("❌ Booking failed. Time conflict or invalid slot.");
         }
     }
 
@@ -146,5 +254,12 @@ public class CustomerMenu {
         bookingService.cancelBooking(bookingId);
         System.out.println("Booking cancelled successfully.");
     }
-}
 
+    private void viewNotifications(int userId) {
+        System.out.println("\n╔════════════════════════════════════════╗");
+        System.out.println("║        YOUR NOTIFICATIONS              ║");
+        System.out.println("╚════════════════════════════════════════╝");
+        
+        notificationService.printUserNotifications(userId);
+    }
+}

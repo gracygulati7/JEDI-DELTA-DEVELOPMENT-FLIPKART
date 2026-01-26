@@ -44,12 +44,25 @@ public class Slot {
         this.seatsAvailable = seatsAvailable;
     }
 
+    public int getTotalSeats() {
+        return totalSeats;
+    }
+
+    public void setTotalSeats(int totalSeats) {
+        this.totalSeats = totalSeats;
+    }
+
+    public boolean isExpired() {
+        return LocalDate.now().isAfter(this.date);
+    }
+
     private int slotId;
     private int centerId;
     private LocalDate date;
     private String startTime;
     private String endTime;
     private int seatsAvailable;
+    private int totalSeats;
 
     public Slot(int slotId, int centerId, LocalDate date, String startTime, String endTime, int seatsAvailable) {
         this.slotId = slotId;
@@ -58,6 +71,7 @@ public class Slot {
         this.startTime = startTime;
         this.endTime = endTime;
         this.seatsAvailable = seatsAvailable;
+        this.totalSeats = seatsAvailable;
     }
 
     public LocalDate getDate() {
@@ -68,11 +82,19 @@ public class Slot {
         this.date = date;
     }
 
+    public int getBookedSeats() {
+        return totalSeats - seatsAvailable;
+    }
+
+    public boolean isFull() {
+        return seatsAvailable <= 0;
+    }
+
     @Override
     public String toString() {
         return "SlotId=" + slotId +
                ", Date=" + (date != null ? date.toString() : "N/A") +
                ", Time: " + startTime + " - " + endTime +
-               ", SeatsAvailable=" + seatsAvailable;
+               ", SeatsAvailable=" + seatsAvailable + "/" + totalSeats;
     }
 }

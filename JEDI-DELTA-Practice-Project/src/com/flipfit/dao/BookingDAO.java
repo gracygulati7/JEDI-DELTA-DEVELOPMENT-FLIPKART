@@ -25,8 +25,13 @@ public class BookingDAO {
         booking.setUserId(userId);
         booking.setSlotId(slotId);
         booking.setDeleted(false);
+        booking.setStatus(Booking.BookingStatus.CONFIRMED);
         bookings.add(booking);
         return booking;
+    }
+
+    public void addWaitlistedBooking(Booking booking) {
+        bookings.add(booking);
     }
 
     public List<Booking> getBookingsByUserId(int userId) {
@@ -52,6 +57,7 @@ public class BookingDAO {
         for (Booking booking : bookings) {
             if (booking.getBookingId() == bookingId) {
                 booking.setDeleted(true);
+                booking.setStatus(Booking.BookingStatus.CANCELLED);
                 break;
             }
         }
@@ -60,10 +66,19 @@ public class BookingDAO {
     public List<Booking> getBookingsBySlotId(int slotId) {
         List<Booking> slotBookings = new ArrayList<>();
         for (Booking booking : bookings) {
-            if (booking.getSlotId() == slotId && !booking.isDeleted()) {
+            if (booking.getSlotId() == slotId && !booking.isDeleted() && 
+                booking.getStatus() == Booking.BookingStatus.CONFIRMED) {
                 slotBookings.add(booking);
             }
         }
         return slotBookings;
+    }
+
+    public List<Booking> getAllBookings() {
+        return new ArrayList<>(bookings);
+    }
+
+    public int getNextBookingId() {
+        return nextBookingId++;
     }
 }
