@@ -39,8 +39,7 @@ public class CustomerMenu {
             System.out.println("6. View Available Slots"); // via userService
             System.out.println("7. View Profile");
             System.out.println("8. Edit Profile");
-            System.out.println("9. Make Payment");
-            System.out.println("10. View Payment Info");
+            System.out.println("9. View Payment Info");
             System.out.println("0. Logout");
             System.out.print("Enter your choice: ");
             choice = InputValidator.readInt(sc);
@@ -70,11 +69,6 @@ public class CustomerMenu {
                 	userService.editProfile(userId);
                 	break;
                 case 9:
-                    System.out.print("Enter amount to pay: ");
-                    int amount = InputValidator.readInt(sc);
-                    customerService.makePayment(userId, amount);
-                    break;
-                case 10:
                     customerService.viewPaymentInfo(userId);
                     break;
                 case 0:
@@ -271,6 +265,21 @@ System.out.println("\nBooking #" + booking.getBookingId() +
         if (selectedSlot == null) {
             System.out.println("❌ Invalid Slot ID!");
             return;
+        }
+        
+        if (!isFullSlot) {
+            System.out.println("\n💰 Payment required to confirm this booking.");
+            System.out.print("Enter payment amount: ");
+            int amount = InputValidator.readInt(sc);
+
+            boolean paymentSuccess = customerService.makePayment(userId, amount);
+
+            if (!paymentSuccess) {
+                System.out.println("❌ Payment failed. Booking cancelled.");
+                return;
+            }
+        } else {
+            System.out.println("\nℹ️ You are joining the waitlist. Payment will be required when a seat becomes available.");
         }
         
         // Step 6: Create booking with centerId to ensure correct slot is retrieved
