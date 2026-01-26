@@ -18,6 +18,8 @@ public class FlipFitUser {
         this.fullName = fullName;
     }
 
+    // Getters and Setters
+
     public int getUserId() {
         return userId;
     }
@@ -25,10 +27,48 @@ public class FlipFitUser {
     public String getFullName() {
         return fullName;
     }
-    public String getRole() {
-    	return role;
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public long getPhone() {
+        return phoneNumber;
+    }
+
+    public void setPhone(long phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public int getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(int pincode) {
+        this.pincode = pincode;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
     public void setRole(String role) {
-    	this.role=role;
+        this.role = role;
     }
 }

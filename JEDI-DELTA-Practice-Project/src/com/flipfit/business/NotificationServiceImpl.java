@@ -34,7 +34,7 @@ public class NotificationServiceImpl implements NotificationService {
     
     @Override
     public void sendBookingConfirmation(int userId, int slotId, int centerId) {
-        Slot slot = slotDAO.getSlotById(slotId,centerId);
+        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
         FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
         
         String centerName = (center != null) ? center.getGymName() : "Unknown Center";
@@ -51,7 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendWaitlistPromotion(int userId, int slotId, int centerId) {
-        Slot slot = slotDAO.getSlotById(slotId,centerId);
+        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
         FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
         
         String centerName = (center != null) ? center.getGymName() : "Unknown Center";
@@ -67,8 +67,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendCancellationNotification(int userId, int slotId) {
-        Slot slot = slotDAO.getSlotById(slotId);
+    public void sendCancellationNotification(int userId, int slotId, int centerId) {
+        Slot slot = slotDAO.getSlotById(userId, slotId, centerId);
         String slotTime = (slot != null) ? slot.getStartTime() + " - " + slot.getEndTime() : "Unknown Time";
         
         String message = "[" + LocalDateTime.now().format(timeFormatter) + "] ✗ BOOKING CANCELLED\n" +
@@ -90,7 +90,7 @@ public class NotificationServiceImpl implements NotificationService {
     
     @Override
     public void sendSlotFullNotification(int userId, int slotId, int centerId) {
-        Slot slot = slotDAO.getSlotById(slotId,centerId);
+        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
         FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
         
         String centerName = (center != null) ? center.getGymName() : "Unknown Center";

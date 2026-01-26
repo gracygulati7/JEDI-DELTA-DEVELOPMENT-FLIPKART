@@ -19,7 +19,7 @@ public class BookingServiceImpl implements BookingService {
         System.out.println("\n[BOOKING] Creating booking for User " + userId + " at Slot " + slotId);
         
         
-        Slot slot=slotDAO.getSlotById(slotId,centerId);
+        Slot slot=slotDAO.getSlotById(userId, slotId,centerId);
         if (slot == null) {
             System.out.println("[BOOKING] ✗ Slot not found");
             return null;
@@ -33,19 +33,6 @@ public class BookingServiceImpl implements BookingService {
 
         // Validate booking (no overbooking, no time conflicts)
         if (!slotScheduler.validateBooking(userId, slotId, centerId)) {
-            // Check if it's being waitlisted
-            if (slot.isFull()) {
-                System.out.println("[BOOKING] ✓ Added to waitlist");
-                Booking waitlistedBooking = new Booking(bookingDAO.getNextBookingId(), userId, slotId);
-                waitlistedBooking.setStatus(Booking.BookingStatus.WAITLISTED);
-                waitlistedBooking.setCenterId(centerId);
-                waitlistedBooking.setSlotDate(slotDate);
-                waitlistedBooking.setStartTime(startTime);
-                waitlistedBooking.setEndTime(endTime);
-                bookingDAO.addWaitlistedBooking(waitlistedBooking);
-                System.out.println("[BOOKING] Notification: Added to waitlist for Slot " + slotId);
-                return waitlistedBooking;
-            }
             return null;
         }
 

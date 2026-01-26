@@ -33,6 +33,16 @@ public class BookingDAO {
     public void addWaitlistedBooking(Booking booking) {
         bookings.add(booking);
     }
+    
+    public Booking createWaitlistingBooking(int userId, int slotId) {
+        Booking booking = new Booking();
+        booking.setBookingId(nextBookingId++); // increment once
+        booking.setUserId(userId);
+        booking.setSlotId(slotId);
+        booking.setStatus(Booking.BookingStatus.WAITLISTED);
+        bookings.add(booking);
+        return booking;
+    }
 
     public List<Booking> getBookingsByUserId(int userId) {
         List<Booking> userBookings = new ArrayList<>();
@@ -79,6 +89,6 @@ public class BookingDAO {
     }
 
     public int getNextBookingId() {
-        return nextBookingId++;
+        return nextBookingId;
     }
 }

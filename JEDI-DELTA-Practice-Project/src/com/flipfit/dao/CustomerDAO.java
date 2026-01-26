@@ -47,4 +47,18 @@ public class CustomerDAO {
     public Collection<FlipFitCustomer> getAllCustomers() {
         return customers.values();
     }
+    
+    public void updateCustomer(FlipFitCustomer user) {
+    	if(user!=null && customers.containsKey(user.getUserId())) {
+    		customers.put(user.getUserId(), user);
+    	}
+    }
+    
+    public void updatePaymentDetails(int userId, int paymentType, String paymentInfo) {
+        FlipFitCustomer customer = customers.get(userId);
+        if (customer != null) {
+            customer.setPaymentType(paymentType);
+            customer.setPaymentInfo(paymentInfo);
+        }
+    }
 }

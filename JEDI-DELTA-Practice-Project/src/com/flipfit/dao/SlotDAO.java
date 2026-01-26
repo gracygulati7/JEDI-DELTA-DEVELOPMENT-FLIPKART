@@ -34,9 +34,9 @@ public class SlotDAO {
         return centerSlots;
     }
 
-    public Slot getSlotById(int slotId,int centerId) {
+    public Slot getSlotById(int userId, int slotId,int centerId) {
         for (Slot slot : slots) {
-            if (slot.getSlotId() == slotId) {
+            if (slot.getSlotId() == slotId && slot.getCenterId() == centerId) {
                 return slot;
             }
         }

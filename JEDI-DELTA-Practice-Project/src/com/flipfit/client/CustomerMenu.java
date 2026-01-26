@@ -8,7 +8,11 @@ import com.flipfit.business.BookingServiceImpl;
 import com.flipfit.business.GymCentreService;
 import com.flipfit.business.GymCentreServiceImpl;
 import com.flipfit.business.NotificationServiceImpl;
+import com.flipfit.business.UserService;
+import com.flipfit.business.UserServiceImpl;
 import com.flipfit.dao.GymCentreDAO;
+import com.flipfit.business.CustomerService;
+import com.flipfit.business.CustomerServiceImpl;
 
 import java.util.List;
 import java.util.Scanner;
@@ -18,8 +22,10 @@ import com.flipfit.helper.InputValidator;
 public class CustomerMenu {
     private final BookingService bookingService = new BookingServiceImpl();
     private final GymCentreService gymCentreService = new GymCentreServiceImpl();
+    private final UserService userService = new UserServiceImpl();
     private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
     private final NotificationServiceImpl notificationService = NotificationServiceImpl.getInstance();
+    private final CustomerService customerService = new CustomerServiceImpl();
 
     public void showMenu(Scanner sc, int userId) {
         int choice;
@@ -30,6 +36,11 @@ public class CustomerMenu {
             System.out.println("3. Book a Slot");
             System.out.println("4. Cancel Booking");
             System.out.println("5. View Notifications");
+            System.out.println("6. View Available Slots"); // via userService
+            System.out.println("7. View Profile");
+            System.out.println("8. Edit Profile");
+            System.out.println("9. Make Payment");
+            System.out.println("10. View Payment Info");
             System.out.println("0. Logout");
             System.out.print("Enter your choice: ");
             choice = InputValidator.readInt(sc);
@@ -49,6 +60,23 @@ public class CustomerMenu {
                 case 5:
                     viewNotifications(userId);
                     break;
+                case 6:
+                	viewAvailableSlotsUserService();
+                	break;
+                case 7:
+                	userService.viewProfile(userId);
+                    break;
+                case 8:
+                	userService.editProfile(userId);
+                	break;
+                case 9:
+                    System.out.print("Enter amount to pay: ");
+                    int amount = InputValidator.readInt(sc);
+                    customerService.makePayment(userId, amount);
+                    break;
+                case 10:
+                    customerService.viewPaymentInfo(userId);
+                    break;
                 case 0:
                     System.out.println("Logging out from Customer Menu...");
                     break;
@@ -56,6 +84,29 @@ public class CustomerMenu {
                     System.out.println("Invalid option");
             }
         } while (choice != 0);
+    }
+
+    private void viewAvailableSlotsUserService() {
+        System.out.println("\n===== VIEW ALL AVAILABLE SLOTS (USER SERVICE) =====");
+        List<FlipFitGymCenter> gyms = gymCentreDAO.getGymCentres();
+        if (gyms.isEmpty()) {
+            System.out.println("No gyms available.");
+            return;
+        }
+        for (FlipFitGymCenter gym : gyms) {
+            List<Slot> slots = userService.findAvailableSlots(gym.getGymId());
+            System.out.println("Gym: " + gym.getGymName() + " (ID: " + gym.getGymId() + ")");
+            if (slots.isEmpty()) {
+                System.out.println("  └─ No available slots");
+            } else {
+                for (Slot slot : slots) {
+                    System.out.println("  Slot ID: " + slot.getSlotId() +
+                                       " | Date: " + slot.getDate() +
+                                       " | Time: " + slot.getStartTime() + "-" + slot.getEndTime() +
+                                       " | Seats: " + slot.getSeatsAvailable() + "/" + slot.getTotalSeats());
+                }
+            }
+        }
     }
 
     private void viewGyms() {
@@ -81,7 +132,7 @@ public class CustomerMenu {
             com.flipfit.dao.GymCentreDAO gymDAO = com.flipfit.dao.GymCentreDAO.getInstance();
             
             for (Booking booking : bookings) {
-                com.flipfit.bean.Slot slot = slotDAO.getSlotById(booking.getSlotId(),booking.getCenterId());
+                com.flipfit.bean.Slot slot = slotDAO.getSlotById(booking.getUserId(),booking.getSlotId(),booking.getCenterId());
                 if (slot != null) {
                     com.flipfit.bean.FlipFitGymCenter gym = gymDAO.getGymCentreById(slot.getCenterId());
                     String gymName = (gym != null) ? gym.getGymName() : "Unknown Gym";
@@ -235,7 +286,7 @@ System.out.println("\nBooking #" + booking.getBookingId() +
                 System.out.println("  ℹ️  You'll be notified when a seat becomes available.");
             } else {
                 // Slot had available seats, booking confirmed
-                selectedSlot.setSeatsAvailable(selectedSlot.getSeatsAvailable() - 1);
+                // selectedSlot.setSeatsAvailable(selectedSlot.getSeatsAvailable() - 1);
                 System.out.println("\n✓ BOOKING CONFIRMED");
                 System.out.println("  Booking ID: " + booking.getBookingId());
                 System.out.println("  Center: " + selectedCenter.getGymName() + " (ID: " + centerId + ")");

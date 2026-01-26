@@ -6,5 +6,6 @@ public interface CustomerService {
     boolean checkBookingConflicts(int userId, int slotId);
     List<Object> viewCentres(String city);
     boolean makePayment(int userId, int amount);
-    void editDetails(int userId);
+    void viewPaymentInfo(int userId);
+    // void editDetails(int userId);
 }
