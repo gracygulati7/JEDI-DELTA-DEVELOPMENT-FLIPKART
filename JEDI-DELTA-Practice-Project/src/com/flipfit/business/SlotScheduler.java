@@ -81,18 +81,32 @@ public class SlotScheduler {
             return;
         }
 
-        Slot slot = slotDAO.getSlotById(nextUserId, slotId,centerId);
+        Slot slot = slotDAO.getSlotById(nextUserId, slotId, centerId);
         if (slot == null || slot.isFull()) {
             System.out.println("[SCHEDULER] Slot is full, re-adding customer to waitlist");
             waitlistDAO.addToWaitlist(slotId, nextUserId);
             return;
         }
 
-        // Check for time conflicts with user's other bookings
+        // Check for time conflicts
         if (hasTimeConflict(nextUserId, slot.getDate(), slot.getStartTime(), slot.getEndTime(), centerId)) {
             System.out.println("[SCHEDULER] ⚠️  Time conflict detected for User " + nextUserId);
-            System.out.println("[SCHEDULER] Promotion cancelled - Customer has overlapping booking");
             waitlistDAO.addToWaitlist(slotId, nextUserId);
+            return;
+        }
+
+        // Payment before confirming booking
+        CustomerService customerService = new CustomerServiceImpl();
+        int slotFee = slot.getFee(); // Make sure Slot bean has fee field
+        System.out.println("[SCHEDULER] 💰 Payment required to confirm promoted booking for User " + nextUserId);
+
+        boolean paymentSuccess = customerService.makePayment(nextUserId, slotFee);
+
+        if (!paymentSuccess) {
+            System.out.println("[SCHEDULER] ❌ Payment failed for promoted user. Booking canceled.");
+            // Re-add to waitlist and free the slot
+            waitlistDAO.addToWaitlist(slotId, nextUserId);
+            slot.setSeatsAvailable(slot.getSeatsAvailable() + 1);
             return;
         }
 

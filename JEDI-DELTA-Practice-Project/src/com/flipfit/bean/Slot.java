@@ -63,6 +63,7 @@ public class Slot {
     private String endTime;
     private int seatsAvailable;
     private int totalSeats;
+    private int fee;
 
     public Slot(int slotId, int centerId, LocalDate date, String startTime, String endTime, int seatsAvailable) {
         this.slotId = slotId;
@@ -88,6 +89,14 @@ public class Slot {
 
     public boolean isFull() {
         return seatsAvailable <= 0;
+    }
+    
+    public int getFee() {
+    	return fee;
+    }
+    
+    public void setFee(int fee) {
+    	this.fee=fee;
     }
 
     @Override
