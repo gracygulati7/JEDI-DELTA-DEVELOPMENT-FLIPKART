@@ -1,5 +1,4 @@
 package com.flipfit.client;
-
 import java.util.Scanner;
 import java.util.List;
 import com.flipfit.business.AdminService;
@@ -25,16 +24,18 @@ public class AdminMenu {
 
         do {
             System.out.println("\n===== ADMIN MENU =====");
-            System.out.println("1. Validate Gym Owner");
-            System.out.println("2. Delete Gym Owner");
-            System.out.println("3. View FlipFit Customers");
-            System.out.println("4. Add Gym Center");
-            System.out.println("5. View Gym Centers");
-            System.out.println("6. Add Slot Info");
-            System.out.println("7. View Slots");
-            System.out.println("8. View Available Slots"); 
-            System.out.println("9. View Profile");
-            System.out.println("10. Edit Profile");
+            System.out.println("1. View All Gym Owners");
+            System.out.println("2. Approve Gym Owner");
+            System.out.println("3. Validate Gym Owner");
+            System.out.println("4. Delete Gym Owner");
+            System.out.println("5. View FlipFit Customers");
+            System.out.println("6. Add Gym Center");
+            System.out.println("7. View Gym Centers");
+            System.out.println("8. Add Slot Info");
+            System.out.println("9. View Slots");
+            System.out.println("10. View Available Slots"); 
+            System.out.println("11. View Profile");
+            System.out.println("12. Edit Profile");
             System.out.println("0. Logout");
 
             System.out.print("Enter choice: ");
@@ -42,22 +43,32 @@ public class AdminMenu {
 
             switch (choice) {
                 case 1:
-                    System.out.print("Enter Owner ID: ");
-                    int ownerId = InputValidator.readInt(sc);
-                    adminService.validateOwner(ownerId);
+                    adminService.viewAllGymOwners();
                     break;
 
                 case 2:
-                    System.out.print("Enter Owner ID: ");
+                    System.out.print("Enter Owner ID to approve: ");
+                    int ownerId = InputValidator.readInt(sc);
+                    adminService.approveOwner(ownerId);
+                    break;
+
+                case 3:
+                    System.out.print("Enter Owner ID to validate: ");
+                    ownerId = InputValidator.readInt(sc);
+                    adminService.validateOwner(ownerId);
+                    break;
+
+                case 4:
+                    System.out.print("Enter Owner ID to delete: ");
                     ownerId = InputValidator.readInt(sc);
                     adminService.deleteOwner(ownerId);
                     break;
 
-                case 3:
+                case 5:
                     adminService.viewFFCustomers();
                     break;
 
-                case 4:
+                case 6:
                     System.out.print("Center ID: ");
                     int centerId = InputValidator.readInt(sc);
                     System.out.print("Gym Name: ");
@@ -74,11 +85,11 @@ public class AdminMenu {
                     adminService.addGymCenter(centerId, gymName, city, state, pincode, capacity);
                     break;
 
-                case 5:
+                case 7:
                     viewGymCentersWithSlots();
                     break;
 
-                case 6:
+                case 8:
                     System.out.print("Center ID: ");
                     centerId = InputValidator.readInt(sc);
                     System.out.print("Slot ID: ");
@@ -93,23 +104,23 @@ public class AdminMenu {
                     adminService.addSlotInfo(centerId, slotId, startTime, endTime, seats);
                     break;
 
-                case 7:
+                case 9:
                     System.out.print("Center ID: ");
                     centerId = InputValidator.readInt(sc);
                     adminService.viewSlots(centerId);
                     break;
 
-                case 8:
+                case 10:
                     viewAvailableSlotsUserService(); 
                     break;
                     
-                case 9:
+                case 11:
                     System.out.print("Enter your Admin ID: ");
                     int adminId = InputValidator.readInt(sc);
                     userService.viewProfile(adminId);
                     break;
 
-                case 10:
+                case 12:
                     System.out.print("Enter your Admin ID: ");
                     adminId = InputValidator.readInt(sc);
                     userService.editProfile(adminId);

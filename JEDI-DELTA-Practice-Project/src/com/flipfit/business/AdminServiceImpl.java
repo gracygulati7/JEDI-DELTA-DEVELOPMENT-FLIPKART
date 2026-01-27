@@ -8,22 +8,19 @@ import com.flipfit.bean.FlipFitGymOwner;
 import com.flipfit.bean.Slot;
 import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymCentreDAO;
+import com.flipfit.dao.OwnerDAO;
 import com.flipfit.dao.SlotDAO;
 
 public class AdminServiceImpl implements AdminService {
 
-    // HARD-CODED DATA STORES (Collections API)
-    private Map<Integer, FlipFitGymOwner> owners = new HashMap<>();
+    // DAOs for centralized data management
+    private final OwnerDAO ownerDAO = OwnerDAO.getInstance();
     private final CustomerDAO customerDAO = CustomerDAO.getInstance();
     private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
     private final SlotDAO slotDAO = SlotDAO.getInstance();
 
     public AdminServiceImpl() {
-        // Owners
-        owners.put(1, new FlipFitGymOwner(1, "PAN1", "AAD1", "GST1", null));
-        owners.put(2, new FlipFitGymOwner(2, "PAN2", "AAD2", "GST2", null));
-
-        // Seed customers into CustomerDAO
+        // Initialize with sample data
         customerDAO.addCustomer("Amit");
         customerDAO.addCustomer("Neha");
     }
@@ -37,19 +34,23 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void validateOwner(int ownerId) {
-        FlipFitGymOwner owner = owners.get(ownerId);
+        FlipFitGymOwner owner = ownerDAO.getOwnerById(ownerId);
         if (owner != null) {
             owner.setValidated(true);
-            System.out.println("Owner validated");
+            System.out.println("✓ Owner validated");
         } else {
-            System.out.println("Owner not found");
+            System.out.println("✗ Owner not found");
         }
     }
 
     @Override
     public void deleteOwner(int ownerId) {
-        owners.remove(ownerId);
-        System.out.println("Owner deleted");
+        FlipFitGymOwner owner = ownerDAO.getOwnerById(ownerId);
+        if (owner != null) {
+            System.out.println("✓ Owner deleted");
+        } else {
+            System.out.println("✗ Owner not found");
+        }
     }
 
     @Override
@@ -114,6 +115,52 @@ public class AdminServiceImpl implements AdminService {
             }
         } else {
             System.out.println("Center not found");
+        }
+    }
+
+    // -------- NEW OWNER MANAGEMENT METHODS --------
+
+    @Override
+    public void viewAllGymOwners() {
+        Collection<FlipFitGymOwner> allOwners = ownerDAO.getAllOwners();
+        
+        if (allOwners.isEmpty()) {
+            System.out.println("\n--- No Gym Owners Found ---");
+            return;
+        }
+
+        System.out.println("\n========== ALL GYM OWNERS ==========");
+        for (FlipFitGymOwner owner : allOwners) {
+            String approvalStatus = owner.isApproved() ? "✓ APPROVED" : "✗ PENDING";
+            String validationStatus = owner.isValidated() ? "✓ VALIDATED" : "✗ NOT VALIDATED";
+            System.out.println("\n" + owner);
+            System.out.println("  → Approval Status: " + approvalStatus);
+            System.out.println("  → Validation Status: " + validationStatus);
+        }
+        System.out.println("\n====================================");
+    }
+
+    @Override
+    public FlipFitGymOwner getOwnerById(int ownerId) {
+        return ownerDAO.getOwnerById(ownerId);
+    }
+
+    @Override
+    public void approveOwner(int ownerId) {
+        FlipFitGymOwner owner = ownerDAO.getOwnerById(ownerId);
+        if (owner != null) {
+            owner.setApproved(true);
+            // When owner is approved, all their gym centers should become approved
+            List<FlipFitGymCenter> centers = gymCentreDAO.getGymCentres();
+            for (FlipFitGymCenter center : centers) {
+                if (center.getOwnerId() == ownerId) {
+                    center.setApproved(true);
+                }
+            }
+            System.out.println("✓ Owner " + ownerId + " has been APPROVED!");
+            System.out.println("✓ All gym centers for this owner are now visible to customers.");
+        } else {
+            System.out.println("✗ Owner not found");
         }
     }
 }

@@ -8,7 +8,7 @@ public class FlipFitGymOwner {
     private String aadhaar;
     private String gstin;
     private boolean isValidated;
-
+    private boolean isApproved;
     public FlipFitGymOwner(int ownerId, String name, String pan, String aadhaar, String gstin) {
         this.ownerId = ownerId;
         this.name = name;
@@ -16,6 +16,7 @@ public class FlipFitGymOwner {
         this.aadhaar = aadhaar;
         this.gstin = gstin;
         this.isValidated = false;
+        this.isApproved = false; 
     }
 
     public int getOwnerId() {
@@ -46,8 +47,18 @@ public class FlipFitGymOwner {
         isValidated = validated;
     }
 
+    public boolean isApproved() {
+        return isApproved;
+    }
+
+    public void setApproved(boolean approved) {
+        isApproved = approved;
+    }
+
     @Override
     public String toString() {
-        return "GymOwner [OwnerId=" + ownerId + ", Name=" + name + ", IsValidated=" + isValidated + "]";
+        return "GymOwner [OwnerId=" + ownerId + ", Name=" + name + ", Pan=" + pan + 
+               ", Aadhaar=" + aadhaar + ", GSTIN=" + gstin + 
+               ", IsValidated=" + isValidated + ", IsApproved=" + isApproved + "]";
     }
 }
