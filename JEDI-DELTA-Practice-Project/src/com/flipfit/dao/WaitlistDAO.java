@@ -6,10 +6,10 @@ public class WaitlistDAO {
 
 	private static WaitlistDAO instance = null;
 
-	// Database credentials.
+	// Database credentials 
 	private final String URL = "jdbc:mysql://localhost:3306/flipfit_db";
 	private final String USER = "root";
-	private final String PASS = "password";
+	private final String PASS = "password"; 
 
 	private WaitlistDAO() {
 	}
@@ -43,7 +43,7 @@ public class WaitlistDAO {
 	}
 
 	public Integer removeFromWaitlist(int slotId) {
-		String selectQuery = "SELECT userId FROM waitlist WHERE slotId = ? ORDER BY requestTime ASC LIMIT 1";
+		String selectQuery = "SELECT userId FROM waitlist WHERE slotId = ? ORDER BY waitlistId ASC LIMIT 1";
 		String deleteQuery = "DELETE FROM waitlist WHERE slotId = ? AND userId = ?";
 
 		try (Connection conn = getConnection()) {
