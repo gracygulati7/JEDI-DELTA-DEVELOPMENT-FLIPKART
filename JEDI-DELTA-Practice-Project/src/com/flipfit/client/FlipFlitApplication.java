@@ -1,5 +1,4 @@
 package com.flipfit.client;
-import com.flipfit.bean.TimeFrame;
 import java.util.Scanner;
 import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.SlotDAO;
@@ -21,26 +20,26 @@ public class FlipFlitApplication {
         slotDAO.addSlot(new com.flipfit.bean.Slot(3, 2, java.time.LocalDate.now(), "8:30","9:30", 5));
     }
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		boolean continueApp = true;
-		
-		try (Scanner sc = new Scanner(System.in)) {
-			while (continueApp) {
-				LoginMenu loginMenu = new LoginMenu();
-				int result = loginMenu.login(sc);
-				
-				if (result == 0) {
-					// User chose to exit
-					continueApp = false;
-				}
-				// If result == 1, loop continues and user can login again
-			}
-		}
-		
-		System.out.println("\n✓ Thank you for using FlipFit! Goodbye!");
-	}
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        boolean continueApp = true;
+        
+        try (Scanner sc = new Scanner(System.in)) {
+            while (continueApp) {
+                LoginMenu loginMenu = new LoginMenu();
+                int result = loginMenu.showStartMenu(sc);
+                
+                if (result == 0) {
+                    // User chose to exit
+                    continueApp = false;
+                }
+                // If result == 1, loop continues and user can login/register again
+            }
+        }
+        
+        System.out.println("\n✓ Thank you for using FlipFit! Goodbye!");
+    }
 
 }

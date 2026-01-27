@@ -1,22 +1,37 @@
 package com.flipfit.business;
-import com.flipfit.bean.TimeFrame;
 import com.flipfit.bean.FlipFitGymCenter;
+import com.flipfit.bean.FlipFitGymOwner;
 import com.flipfit.bean.Slot;
 import java.time.LocalDate;
 import com.flipfit.bean.Booking;
 import com.flipfit.dao.GymCentreDAO;
+import com.flipfit.dao.OwnerDAO;
 import com.flipfit.dao.SlotDAO;
 import com.flipfit.dao.BookingDAO;
-import com.flipfit.business.AdminService;
-import com.flipfit.business.AdminServiceImpl;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class GymOwnerServiceImpl implements GymOwnerService {
     
+    private final OwnerDAO ownerDAO = OwnerDAO.getInstance();
     private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
     private final SlotDAO slotDAO = SlotDAO.getInstance();
+
+    @Override
+    public FlipFitGymOwner registerOwner(String name, String pan, String aadhaar, String gstin) {
+        // Register owner in DAO
+        ownerDAO.addOwner(name);
+        FlipFitGymOwner registeredOwner = ownerDAO.getOrCreateOwnerByName(name);
+        
+        // Update the owner details
+        System.out.println("\n✓ Registration Successful!");
+        System.out.println("  Owner ID: " + registeredOwner.getOwnerId());
+        System.out.println("  Name: " + registeredOwner.getName());
+        System.out.println("  Status: PENDING APPROVAL");
+        System.out.println("\n  Your gym centers will be visible to customers once approved by admin.");
+        
+        return registeredOwner;
+    }
 
     @Override
     public void addCentre(int ownerId, int centerId, String gymName, String city, String state, int pincode, int capacity) {
@@ -137,7 +152,8 @@ public class GymOwnerServiceImpl implements GymOwnerService {
             System.out.println("PAN: " + owner.getPan());
             System.out.println("Aadhaar: " + owner.getAadhaar());
             System.out.println("GSTIN: " + owner.getGstin());
-            System.out.println("Validated: " + owner.isValidated());
+            System.out.println("Validated: " + (owner.isValidated() ? "✓ YES" : "✗ NO"));
+            System.out.println("Approved: " + (owner.isApproved() ? "✓ YES - Visible to Customers" : "✗ NO - Pending Admin Approval"));
             
             // Show centres count
             List<FlipFitGymCenter> centres = viewCentres(ownerId);
