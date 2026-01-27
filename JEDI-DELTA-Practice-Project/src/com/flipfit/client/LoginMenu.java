@@ -47,11 +47,12 @@ public class LoginMenu {
     }
     
     public int login(Scanner sc) {
+    	sc.nextLine();
         System.out.println("\n===== FLIPFIT LOGIN =====");
-        System.out.print("Username: ");
-        String username = sc.next();
+        System.out.println("Username: ");
+        String username = sc.nextLine();
         System.out.print("Password: ");
-        sc.next();  // Read password but don't store (placeholder)
+        String password=sc.next();  // Read password 
         System.out.println("\nSelect Role:");
         System.out.println("1. Gym Owner");
         System.out.println("2. Gym Customer");
@@ -91,6 +92,15 @@ public class LoginMenu {
             break;
             
         case 3:
+            com.flipfit.dao.AdminDAO adminDAO = com.flipfit.dao.AdminDAO.getInstance();
+
+            boolean isValidAdmin = adminDAO.login(username, password);
+
+            if (!isValidAdmin) {
+                System.out.println("\n✗ Invalid admin credentials");
+                return 1;   // Back to start menu
+            }
+
             System.out.println("\n✓ Logged in as Gym Admin");
             AdminMenu adminMenu = new AdminMenu();
             adminMenu.showMenu(sc);
