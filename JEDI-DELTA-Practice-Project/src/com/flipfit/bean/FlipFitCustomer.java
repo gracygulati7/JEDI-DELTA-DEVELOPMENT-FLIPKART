@@ -7,6 +7,12 @@ public class FlipFitCustomer extends FlipFitUser {
     private String paymentInfo;  // card/upi details
     private String contact;      // phone/email contact
 
+    public FlipFitCustomer() {
+    	super();
+    	this.role="CUSTOMER";
+    	this.contact="N/A";
+    }
+    
     public FlipFitCustomer(int userId, String fullName) {
         this.userId = userId;
         this.fullName = fullName;
@@ -16,6 +22,14 @@ public class FlipFitCustomer extends FlipFitUser {
 
     // --- getters & setters ---
 
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+    
     public int getPaymentType() {
         return paymentType;
     }

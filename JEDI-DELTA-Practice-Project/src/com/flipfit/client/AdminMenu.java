@@ -138,7 +138,7 @@ public class AdminMenu {
 
     private void viewGymCentersWithSlots() {
         System.out.println("\n===== ALL GYM CENTERS WITH SLOTS =====");
-        List<FlipFitGymCenter> centers = gymCentreDAO.getGymCentres();
+        List<FlipFitGymCenter> centers = gymCentreDAO.getAllCentres();
 
         if (centers.isEmpty()) {
             System.out.println("No gym centers found.");
@@ -168,7 +168,7 @@ public class AdminMenu {
     // ---method using UserService ---
     private void viewAvailableSlotsUserService() {
         System.out.println("\n===== ALL AVAILABLE SLOTS (via UserService) =====");
-        List<FlipFitGymCenter> centers = gymCentreDAO.getGymCentres();
+        List<FlipFitGymCenter> centers = gymCentreDAO.getAllCentres();
 
         if (centers.isEmpty()) {
             System.out.println("No gym centers available.");

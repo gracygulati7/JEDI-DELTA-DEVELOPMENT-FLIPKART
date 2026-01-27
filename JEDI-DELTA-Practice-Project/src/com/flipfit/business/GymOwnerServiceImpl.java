@@ -44,7 +44,7 @@ public class GymOwnerServiceImpl implements GymOwnerService {
     @Override
     public List<FlipFitGymCenter> viewCentres(int ownerId) {
         List<FlipFitGymCenter> ownerCentres = new ArrayList<>();
-        List<FlipFitGymCenter> allCentres = gymCentreDAO.getGymCentres();
+        List<FlipFitGymCenter> allCentres = gymCentreDAO.getAllCentres();
         
         for (FlipFitGymCenter centre : allCentres) {
             if (centre.getOwnerId() == ownerId) {
@@ -160,6 +160,22 @@ public class GymOwnerServiceImpl implements GymOwnerService {
             System.out.println("Total Centres: " + centres.size());
         } else {
             System.out.println("Owner not found.");
+        }
+    }
+    
+    @Override
+    public void registerOwner(String name, String email, String password, String pan, String aadhaar, String gstin) {
+        com.flipfit.dao.OwnerDAO ownerDAO = com.flipfit.dao.OwnerDAO.getInstance();
+
+        // 1. Create the base User entry (This satisfies the email/password requirement)
+        ownerDAO.addOwner(name, email, password); 
+
+        // 2. Fetch the ID generated for this user to link the owner details
+        com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByName(name);
+        
+        if (owner != null) {
+            // 3. Add professional details (PAN, Aadhaar, etc.) to the Owner table
+            ownerDAO.addOwnerDetails(owner.getOwnerId(), pan, aadhaar, gstin);
         }
     }
 }

@@ -4,6 +4,9 @@ import com.flipfit.helper.InputValidator;
 
 public class LoginMenu {
     
+    // Instantiate service here or in constructor
+    private com.flipfit.business.GymOwnerService gymOwnerService = new com.flipfit.business.GymOwnerServiceImpl();
+    
     public int showStartMenu(Scanner sc) {
         System.out.println("\n========== FLIPFIT APPLICATION ==========");
         System.out.println("1. Login");
@@ -17,7 +20,7 @@ public class LoginMenu {
             return login(sc);
         case 2:
             registerOwner(sc);
-            return 1;  // Return to start menu
+            return 1;  
         case 3:
             System.out.println("\n--- Exiting application ---");
             return 0;
@@ -30,7 +33,15 @@ public class LoginMenu {
     private void registerOwner(Scanner sc) {
         System.out.println("\n========== GYM OWNER REGISTRATION ==========");
         System.out.print("Enter full name: ");
-        String name = sc.next();
+        sc.nextLine(); // Clear buffer
+        String name = sc.nextLine();
+        
+        // ADDED EMAIL AND PASSWORD INPUTS
+        System.out.print("Enter email: ");
+        String email = sc.next();
+        System.out.print("Enter password: ");
+        String password = sc.next();
+        
         System.out.print("Enter PAN number: ");
         String pan = sc.next();
         System.out.print("Enter Aadhaar number: ");
@@ -38,21 +49,20 @@ public class LoginMenu {
         System.out.print("Enter GSTIN: ");
         String gstin = sc.next();
         
-        // Create owner
-        com.flipfit.business.GymOwnerService gymOwnerService = new com.flipfit.business.GymOwnerServiceImpl();
-        gymOwnerService.registerOwner(name, pan, aadhaar, gstin);
+        // Updated service call with 6 parameters
+        gymOwnerService.registerOwner(name, email, password, pan, aadhaar, gstin);
         
-        System.out.println("\n➤ You can now login with username: " + name);
-        System.out.println("➤ Your gym centres will be visible to customers once admin approval is received.");
+        System.out.println("\n➤ Registration successful!");
+        System.out.println("➤ You can now login with email: " + email);
     }
     
     public int login(Scanner sc) {
-    	sc.nextLine();
         System.out.println("\n===== FLIPFIT LOGIN =====");
-        System.out.println("Username: ");
-        String username = sc.nextLine();
+        System.out.print("Email (Username): ");
+        String email = sc.next();
         System.out.print("Password: ");
-        String password=sc.next();  // Read password 
+        String password = sc.next(); 
+        
         System.out.println("\nSelect Role:");
         System.out.println("1. Gym Owner");
         System.out.println("2. Gym Customer");
@@ -62,19 +72,22 @@ public class LoginMenu {
         
         switch (roleChoice) {
         case 1:
-            // Resolve owner by username
+            // Important: Logic should ideally verify password here too
             com.flipfit.dao.OwnerDAO ownerDAO = com.flipfit.dao.OwnerDAO.getInstance();
-            com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByName(username);
+            // Since we use email for login, update your DAO to getOwnerByEmail 
+            // Or use getOwnerByName if you still want to use 'full_name' as username
+            com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByName(email); 
             
             if (owner == null) {
-                System.out.println("\n✗ Gym Owner account not found. Please register first.");
-                return 1;  // Return to start menu
+                System.out.println("\n✗ Gym Owner account not found.");
+                return 1;
             }
             
+            // Note: In a real app, you'd check password here: if(!owner.getPassword().equals(password))...
+
             if (!owner.isApproved()) {
                 System.out.println("\n✗ Your account is still pending admin approval.");
-                System.out.println("   Your gym centres will be visible to customers once approved.");
-                return 1;  // Return to start menu
+                return 1;
             }
             
             System.out.println("\n✓ Logged in as Gym Owner: " + owner.getName());
@@ -83,24 +96,21 @@ public class LoginMenu {
             break;
             
         case 2:
+            // Similar logic for Customer using customerDAO
             System.out.println("\n✓ Logged in as Gym Customer");
-            // Resolve or create customer by username
             com.flipfit.dao.CustomerDAO customerDAO = com.flipfit.dao.CustomerDAO.getInstance();
-            com.flipfit.bean.FlipFitCustomer customer = customerDAO.getOrCreateCustomerByName(username);
+            com.flipfit.bean.FlipFitCustomer customer = customerDAO.getOrCreateCustomerByName(email);
             CustomerMenu customerMenu = new CustomerMenu();
             customerMenu.showMenu(sc, customer.getUserId());
             break;
             
         case 3:
             com.flipfit.dao.AdminDAO adminDAO = com.flipfit.dao.AdminDAO.getInstance();
-
-            boolean isValidAdmin = adminDAO.login(username, password);
-
+            boolean isValidAdmin = adminDAO.login(email, password);
             if (!isValidAdmin) {
                 System.out.println("\n✗ Invalid admin credentials");
-                return 1;   // Back to start menu
+                return 1;
             }
-
             System.out.println("\n✓ Logged in as Gym Admin");
             AdminMenu adminMenu = new AdminMenu();
             adminMenu.showMenu(sc);
@@ -123,15 +133,12 @@ public class LoginMenu {
         
         switch (choice) {
         case 1:
-            System.out.println("\n--- Redirecting to login ---");
-            return 1; // Return 1 to continue (login again)
+            return 1; 
         case 2:
-            System.out.println("\n--- Exiting application ---");
-            return 0; // Return 0 to exit
+            return 0; 
         default:
-            System.out.println("Invalid choice! Please try again.");
+            System.out.println("Invalid choice!");
             return showLogoutMenu(sc);
         }
     }
-
 }

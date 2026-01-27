@@ -97,7 +97,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public void viewGymCenters() {
         System.out.println("\n--- Gym Centers ---");
-        for (FlipFitGymCenter c : gymCentreDAO.getGymCentres()) {
+        for (FlipFitGymCenter c : gymCentreDAO.getAllCentres()) {
             System.out.println(c);
         }
     }
@@ -170,7 +170,7 @@ public class AdminServiceImpl implements AdminService {
         if (owner != null) {
             owner.setApproved(true);
 
-            List<FlipFitGymCenter> centers = gymCentreDAO.getGymCentres();
+            List<FlipFitGymCenter> centers = gymCentreDAO.getAllCentres();
             for (FlipFitGymCenter center : centers) {
                 if (center.getOwnerId() == ownerId) {
                     center.setApproved(true);

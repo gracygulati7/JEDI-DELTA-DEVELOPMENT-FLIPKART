@@ -15,4 +15,5 @@ public interface GymOwnerService {
     void viewPayments(int ownerId);
     void editDetails(int ownerId);
     void viewProfile(int ownerId);
+    void registerOwner(String name, String email, String password, String pan, String aadhaar, String gstin);
 }

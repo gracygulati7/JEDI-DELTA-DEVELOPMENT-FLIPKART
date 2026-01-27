@@ -82,7 +82,7 @@ public class CustomerMenu {
 
 	private void viewAvailableSlotsUserService() {
 		System.out.println("\n===== VIEW ALL AVAILABLE SLOTS (USER SERVICE) =====");
-		List<FlipFitGymCenter> gyms = gymCentreDAO.getGymCentres();
+		List<FlipFitGymCenter> gyms = gymCentreDAO.getAllCentres();
 		if (gyms.isEmpty()) {
 			System.out.println("No gyms available.");
 			return;
@@ -104,7 +104,7 @@ public class CustomerMenu {
 
 	private void viewGyms() {
 		System.out.println("\nAvailable Gyms:");
-		List<FlipFitGymCenter> gyms = gymCentreDAO.getGymCentres();
+		List<FlipFitGymCenter> gyms = gymCentreDAO.getAllCentres();
 		for (FlipFitGymCenter gym : gyms) {
 			System.out.println(
 					"ID: " + gym.getGymId() + ", Name: " + gym.getGymName() + ", Location: " + gym.getLocation());
@@ -140,7 +140,7 @@ public class CustomerMenu {
 	private void bookSlot(Scanner sc, int userId) {
 		// Step 1: Display available centers
 		System.out.println("\n===== AVAILABLE GYM CENTERS =====");
-		List<FlipFitGymCenter> gyms = gymCentreDAO.getGymCentres();
+		List<FlipFitGymCenter> gyms = gymCentreDAO.getAllCentres();
 
 		if (gyms.isEmpty()) {
 			System.out.println("No gym centers available.");

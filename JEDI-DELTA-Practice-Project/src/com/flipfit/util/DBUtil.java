@@ -6,9 +6,9 @@ import java.sql.SQLException;
 
 public class DBUtil {
 
-	private static final String DB_URL = "jdbc:mysql://localhost:3306/FLipfit";
+	private static final String DB_URL = "jdbc:mysql://localhost:3306/FLipFit";
     private static final String USER = "root"; // Replace with your MySQL 
-    private static final String PASS = "Password@123"; // Replace with your MySQL password
+    private static final String PASS = "@JaySiyaRam07"; // Replace with your MySQL password
 
     static {
     	try {
