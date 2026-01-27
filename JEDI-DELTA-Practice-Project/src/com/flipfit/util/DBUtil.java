@@ -8,7 +8,7 @@ public class DBUtil {
 
 	private static final String DB_URL = "jdbc:mysql://localhost:3306/FLipfit_Schema";
     private static final String USER = "root"; // Replace with your MySQL 
-    private static final String PASS = "!Sam2004"; // Replace with your MySQL password
+    private static final String PASS = ""; // Replace with your MySQL password
 
     static {
     	try {
