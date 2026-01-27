@@ -23,7 +23,7 @@ public class FlipFitGymCenter {
         this.state = state;
         this.pincode = pincode;
         this.capacity = capacity;
-        this.approved = true;
+        this.approved = false;
     }
 
     public int getGymId() { return centerId; }
@@ -45,9 +45,11 @@ public class FlipFitGymCenter {
     public String toString() {
         return "CenterId=" + centerId +
                ", GymName=" + gymName +
+               ", OwnerId=" + ownerId +
                ", City=" + city +
                ", State=" + state +
                ", Pincode=" + pincode +
-               ", Capacity=" + capacity;
+               ", Capacity=" + capacity +
+               ", Approved=" + approved;
     }
 }

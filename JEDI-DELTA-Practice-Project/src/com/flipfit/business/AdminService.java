@@ -1,5 +1,6 @@
 package com.flipfit.business;
 import com.flipfit.bean.FlipFitCustomer;
+import com.flipfit.bean.FlipFitGymOwner;
 
 public interface AdminService {
 
@@ -18,4 +19,9 @@ public interface AdminService {
 
     // Utility: lookup customer by id
     FlipFitCustomer getCustomerById(int userId);
+
+    // New: Owner management for approval workflow
+    void viewAllGymOwners();
+    FlipFitGymOwner getOwnerById(int ownerId);
+    void approveOwner(int ownerId);
 }
