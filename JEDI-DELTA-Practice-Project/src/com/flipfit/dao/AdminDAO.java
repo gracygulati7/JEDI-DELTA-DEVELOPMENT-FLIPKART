@@ -14,7 +14,7 @@ public class AdminDAO {
     private static final String PORT = "3306";
     private static final String SCHEMA = "FlipFit_schema";
     private static final String USER = "root";
-    private static final String PASSWORD = "Lochan@1999";
+    private static final String PASSWORD = "put_your_password";
 
     private static final String URL =
     	    "jdbc:mysql://localhost:3306/FlipFit_schema" +
