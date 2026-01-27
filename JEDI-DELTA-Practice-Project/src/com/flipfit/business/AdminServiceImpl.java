@@ -1,11 +1,13 @@
 package com.flipfit.business;
 
 import java.util.*;
+import java.util.Scanner;
 
 import com.flipfit.bean.FlipFitCustomer;
 import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.FlipFitGymOwner;
 import com.flipfit.bean.Slot;
+import com.flipfit.dao.AdminDAO;          // ✅ ADD
 import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.OwnerDAO;
@@ -18,6 +20,7 @@ public class AdminServiceImpl implements AdminService {
     private final CustomerDAO customerDAO = CustomerDAO.getInstance();
     private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
     private final SlotDAO slotDAO = SlotDAO.getInstance();
+    private final AdminDAO adminDAO = AdminDAO.getInstance();   // ✅ ADD
 
     public AdminServiceImpl() {
         // Initialize with sample data
@@ -26,10 +29,24 @@ public class AdminServiceImpl implements AdminService {
     }
 
     // -------- Diagram Functions --------
-
     @Override
     public void login() {
-        System.out.println("Admin logged in successfully");
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter admin email: ");
+        String email = sc.nextLine();
+
+        System.out.print("Enter admin password: ");
+        String password = sc.nextLine();
+
+        boolean isValid = adminDAO.login(email, password);
+
+        if (isValid) {
+            System.out.println("✓ Admin logged in successfully");
+        } else {
+            System.out.println("✗ Invalid admin credentials");
+        }
     }
 
     @Override
@@ -67,10 +84,9 @@ public class AdminServiceImpl implements AdminService {
     }
 
     // -------- REQUIRED FUNCTIONS --------
-
     @Override
-    public void addGymCenter(int centerId, String gymName, String city, String state,
-                             int pincode, int capacity) {
+    public void addGymCenter(int centerId, String gymName, String city,
+                             String state, int pincode, int capacity) {
 
         FlipFitGymCenter center =
                 new FlipFitGymCenter(centerId, gymName, city, state, pincode, capacity);
@@ -92,7 +108,10 @@ public class AdminServiceImpl implements AdminService {
 
         FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
         if (center != null) {
-            Slot slot = new Slot(slotId, centerId, java.time.LocalDate.now(), startTime, endTime, seats);
+            Slot slot = new Slot(
+                    slotId, centerId, java.time.LocalDate.now(),
+                    startTime, endTime, seats
+            );
             slotDAO.addSlot(slot);
             System.out.println("Slot added");
         } else {
@@ -119,11 +138,10 @@ public class AdminServiceImpl implements AdminService {
     }
 
     // -------- NEW OWNER MANAGEMENT METHODS --------
-
     @Override
     public void viewAllGymOwners() {
         Collection<FlipFitGymOwner> allOwners = ownerDAO.getAllOwners();
-        
+
         if (allOwners.isEmpty()) {
             System.out.println("\n--- No Gym Owners Found ---");
             return;
@@ -133,6 +151,7 @@ public class AdminServiceImpl implements AdminService {
         for (FlipFitGymOwner owner : allOwners) {
             String approvalStatus = owner.isApproved() ? "✓ APPROVED" : "✗ PENDING";
             String validationStatus = owner.isValidated() ? "✓ VALIDATED" : "✗ NOT VALIDATED";
+
             System.out.println("\n" + owner);
             System.out.println("  → Approval Status: " + approvalStatus);
             System.out.println("  → Validation Status: " + validationStatus);
@@ -150,13 +169,14 @@ public class AdminServiceImpl implements AdminService {
         FlipFitGymOwner owner = ownerDAO.getOwnerById(ownerId);
         if (owner != null) {
             owner.setApproved(true);
-            // When owner is approved, all their gym centers should become approved
+
             List<FlipFitGymCenter> centers = gymCentreDAO.getGymCentres();
             for (FlipFitGymCenter center : centers) {
                 if (center.getOwnerId() == ownerId) {
                     center.setApproved(true);
                 }
             }
+
             System.out.println("✓ Owner " + ownerId + " has been APPROVED!");
             System.out.println("✓ All gym centers for this owner are now visible to customers.");
         } else {
