@@ -2,7 +2,6 @@ package com.flipfit.dao;
 
 import com.flipfit.util.DBUtil;
 import com.flipfit.exceptions.DbConnectionException;
-
 import java.sql.*;
 
 public class WaitlistDAO {
@@ -25,6 +24,9 @@ public class WaitlistDAO {
         return DBUtil.getConnection();
     }
 
+    /**
+     * Adds a user to the waitlist for a specific gym slot.
+     */
     public void addToWaitlist(int slotId, int userId) throws DbConnectionException {
         String query = "INSERT INTO waitlist (slotId, userId) VALUES (?, ?)";
         try (Connection conn = getConnection(); 
@@ -32,13 +34,16 @@ public class WaitlistDAO {
             stmt.setInt(1, slotId);
             stmt.setInt(2, userId);
             stmt.executeUpdate();
-            // Optional: You can keep System.out for debugging, or remove for production
             System.out.println("[DB] User " + userId + " added to waitlist for slot " + slotId);
         } catch (SQLException e) {
             throw new DbConnectionException("Error adding user " + userId + " to waitlist", e);
         }
     }
 
+    /**
+     * Removes the oldest waitlisted user (FIFO) for a slot and returns their
+     * userId. Utilizes a database transaction.
+     */
     public Integer removeFromWaitlist(int slotId) throws DbConnectionException {
         String selectQuery = "SELECT waitlistId, userId FROM waitlist WHERE slotId = ? ORDER BY waitlistId ASC LIMIT 1 FOR UPDATE";
         String deleteQuery = "DELETE FROM waitlist WHERE waitlistId = ?";
@@ -82,17 +87,16 @@ public class WaitlistDAO {
                 try {
                     conn.rollback();
                 } catch (SQLException ex) {
-                    // Log this, don't throw it, or it masks the original error
                     System.err.println("Error during rollback: " + ex.getMessage());
                 }
             }
             throw new DbConnectionException("Error removing user from waitlist for slot " + slotId, e);
         } finally {
-            // Reset AutoCommit
+            // Reset AutoCommit and Close
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
-                    conn.close(); // Important: Close connection manually since we didn't use try-with-resources for 'conn'
+                    conn.close();
                 } catch (SQLException e) {
                     System.err.println("Error closing connection: " + e.getMessage());
                 }
