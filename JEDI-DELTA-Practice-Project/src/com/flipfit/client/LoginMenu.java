@@ -75,11 +75,11 @@ public class LoginMenu {
             // Important: Logic should ideally verify password here too
             com.flipfit.dao.OwnerDAO ownerDAO = com.flipfit.dao.OwnerDAO.getInstance();
             // Since we use email for login, update your DAO to getOwnerByEmail 
-            // Or use getOwnerByName if you still want to use 'full_name' as username
-            com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByName(email); 
+            // Or use getOwnerByName if you still want to use 'email' as username
+            com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByEmail(email);
             
             if (owner == null) {
-                System.out.println("\n✗ Gym Owner account not found.");
+                System.out.println("\n✗ Gym Owner account not found for email: " + email);
                 return 1;
             }
             

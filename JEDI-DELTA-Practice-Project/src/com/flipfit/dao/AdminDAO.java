@@ -24,6 +24,8 @@ public class AdminDAO {
     // ---- ADMIN AUTHENTICATION ----
     public boolean login(String username, String password) {
 
+    	// System.out.println("[Debug] Attempting login for Email: " + username + " with Role: ADMIN");
+    	
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps =
                  conn.prepareStatement(SQLConstants.ADMIN_LOGIN_QUERY)) {

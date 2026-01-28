@@ -1,6 +1,8 @@
 package com.flipfit.dao;
 
 import com.flipfit.bean.Slot;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import com.flipfit.util.DBUtil;
 
 import java.sql.*;
@@ -28,16 +30,16 @@ public class SlotDAO {
     }
 
     public void addSlot(Slot slot) {
-        // UPDATED: Added end_time to the column list and added a 7th '?' placeholder
         String query = "INSERT INTO slots (slot_id, centre_id, slot_date, start_time, end_time, total_seats, available_seats) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, slot.getSlotId());
             stmt.setInt(2, slot.getCenterId());
             stmt.setDate(3, Date.valueOf(slot.getDate()));
-            stmt.setTime(4, Time.valueOf(slot.getStartTime()));
             
-            // ADDED: Setting the end_time (assuming your Slot bean has getEndTime())
-            stmt.setTime(5, Time.valueOf(slot.getEndTime())); 
+            // FIX: Use a helper method to convert string to SQL Time safely
+            stmt.setTime(4, convertToSqlTime(slot.getStartTime()));
+            stmt.setTime(5, convertToSqlTime(slot.getEndTime())); 
             
             stmt.setInt(6, slot.getTotalSeats());
             stmt.setInt(7, slot.getSeatsAvailable());
@@ -48,6 +50,18 @@ public class SlotDAO {
             throw new RuntimeException(e);
         }
     }
+    
+    private Time convertToSqlTime(String timeStr) {
+        try {
+            // This handles H:mm, HH:mm, HH:mm:ss etc.
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("[H:mm[:ss]][HH:mm[:ss]]");
+            LocalTime localTime = LocalTime.parse(timeStr, formatter);
+            return Time.valueOf(localTime);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid time format: " + timeStr + ". Please use HH:mm (e.g. 06:00)");
+        }
+    }
+
 
     public List<Slot> getSlotsByCenterId(int centerId) {
         List<Slot> centerSlots = new ArrayList<>();
@@ -209,13 +223,20 @@ public class SlotDAO {
 
     private Slot mapResultSetToSlot(ResultSet rs) throws SQLException {
         Slot slot = new Slot();
-        // FIX: rs.getLabels must match DB column names exactly
+        
         slot.setSlotId(rs.getInt("slot_id"));
         slot.setCenterId(rs.getInt("centre_id"));
         slot.setDate(rs.getDate("slot_date").toLocalDate());
+        
+        // Convert SQL Time to String for the bean
         slot.setStartTime(String.valueOf(rs.getTime("start_time").toLocalTime()));
+        
+        // FIX: Add this line to fetch and set the end_time
+        slot.setEndTime(String.valueOf(rs.getTime("end_time").toLocalTime()));
+        
         slot.setTotalSeats(rs.getInt("total_seats"));
         slot.setSeatsAvailable(rs.getInt("available_seats"));
+        
         return slot;
     }
 }

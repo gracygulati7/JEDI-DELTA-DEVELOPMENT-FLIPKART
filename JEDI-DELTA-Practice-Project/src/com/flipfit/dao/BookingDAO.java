@@ -32,7 +32,7 @@ public class BookingDAO {
     }
 
     public Booking createBooking(int userId, int slotId) {
-        String sql = "INSERT INTO booking (user_id, slot_id, status, is_deleted) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO bookings (user_id, slot_id, status, is_deleted) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -53,7 +53,7 @@ public class BookingDAO {
     }
 
     public Booking createWaitlistingBooking(int userId, int slotId) {
-        String sql = "INSERT INTO booking (user_id, slot_id, status, is_deleted) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO bookings (user_id, slot_id, status, is_deleted) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -75,7 +75,7 @@ public class BookingDAO {
 
     public List<Booking> getBookingsByUserId(int userId) {
         List<Booking> userBookings = new ArrayList<>();
-        String sql = "SELECT * FROM booking WHERE user_id = ? AND is_deleted = false";
+        String sql = "SELECT * FROM bookings WHERE user_id = ? AND is_deleted = false";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -90,7 +90,7 @@ public class BookingDAO {
     }
 
     public Booking getBookingById(int bookingId) {
-        String sql = "SELECT * FROM booking WHERE booking_id = ?";
+        String sql = "SELECT * FROM bookings WHERE booking_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
@@ -105,7 +105,7 @@ public class BookingDAO {
     }
 
     public void cancelBooking(int bookingId) {
-        String sql = "UPDATE booking SET is_deleted = true, status = ? WHERE booking_id = ?";
+        String sql = "UPDATE bookings SET is_deleted = true, status = ? WHERE booking_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, Booking.BookingStatus.CANCELLED.name());
@@ -118,7 +118,7 @@ public class BookingDAO {
 
     public List<Booking> getBookingsBySlotId(int slotId) {
         List<Booking> slotBookings = new ArrayList<>();
-        String sql = "SELECT * FROM booking WHERE slot_id = ? AND is_deleted = false AND status = 'CONFIRMED'";
+        String sql = "SELECT * FROM bookings WHERE slot_id = ? AND is_deleted = false AND status = 'CONFIRMED'";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, slotId);
@@ -134,7 +134,7 @@ public class BookingDAO {
 
     public List<Booking> getAllBookings() {
         List<Booking> allBookings = new ArrayList<>();
-        String sql = "SELECT * FROM booking";
+        String sql = "SELECT * FROM bookings";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
