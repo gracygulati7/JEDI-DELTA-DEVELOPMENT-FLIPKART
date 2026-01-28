@@ -39,10 +39,10 @@ public class GymOwnerMenu {
                 addSlot(sc, ownerId);
                 break;
             case 4:
-                viewSlots(sc);
+                viewSlots(sc,ownerId);
                 break;
             case 5:
-                viewCustomers(sc);
+                viewCustomers(sc,ownerId);
                 break;
             case 6:
                 gymOwnerService.viewProfile(ownerId);
@@ -113,18 +113,18 @@ public class GymOwnerMenu {
         gymOwnerService.addSlot(centerId, slotId, date, startTime, endTime, seats);
     }
 
-    private void viewSlots(Scanner sc) {
+    private void viewSlots(Scanner sc, int ownerId) { 
         System.out.println("\n----- View Slots -----");
         System.out.print("Enter Centre ID: ");
         int centerId = InputValidator.readInt(sc);
-        gymOwnerService.viewSlots(centerId);
+        gymOwnerService.viewSlots(ownerId, centerId); 
     }
 
-    private void viewCustomers(Scanner sc) {
+    private void viewCustomers(Scanner sc, int ownerId) { 
         System.out.println("\n----- View Customers -----");
         System.out.print("Enter Centre ID: ");
         int centreId = InputValidator.readInt(sc);
-        gymOwnerService.viewCustomers(centreId);
+        gymOwnerService.viewCustomers(ownerId, centreId); 
     }
 
 }

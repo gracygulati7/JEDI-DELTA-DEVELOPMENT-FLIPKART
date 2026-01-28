@@ -7,6 +7,7 @@ import com.flipfit.bean.Slot;
 import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.SlotDAO;
+import com.flipfit.dao.UserDAO;
 import com.flipfit.bean.FlipFitCustomer;
 
 public class UserServiceImpl implements UserService {
@@ -14,6 +15,7 @@ public class UserServiceImpl implements UserService {
     private final SlotDAO slotDAO = SlotDAO.getInstance();
     private final CustomerDAO customerDAO = CustomerDAO.getInstance();
     private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
+    private final UserDAO userDAO = UserDAO.getInstance();
 
     @Override
     public List<Slot> findAvailableSlots(int centreId) {
@@ -43,56 +45,50 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void viewProfile(int userId) {
-        FlipFitCustomer user = customerDAO.getCustomerById(userId); // works for customers
+        // CHANGED: Use userDAO to look in 'users' table (works for Admin/Owner/Customer)
+        FlipFitCustomer user = userDAO.getUserById(userId); 
+        
         if (user != null) {
-            System.out.println("User ID: " + user.getUserId());
-            System.out.println("Name: " + user.getFullName());
-            System.out.println("Role: " + user.getRole());
+            System.out.println("\n========== PROFILE ==========");
+            System.out.println("User ID : " + user.getUserId());
+            System.out.println("Name    : " + user.getFullName());
+            System.out.println("Email   : " + user.getEmail());
+            System.out.println("Role    : " + user.getRole());
+            System.out.println("=============================");
         } else {
-            System.out.println("User not found");
+            System.out.println("✗ User not found with ID: " + userId);
         }
     }
 
     @Override
     public void editProfile(int userId) {
-    	FlipFitCustomer user = customerDAO.getCustomerById(userId);
+        // CHANGED: Use userDAO
+        FlipFitCustomer user = userDAO.getUserById(userId);
 
         if (user == null) {
-            System.out.println("User not found");
+            System.out.println("✗ User not found");
             return;
         }
 
         Scanner sc = new Scanner(System.in);
-
-        System.out.println("Editing profile for " + user.getFullName());
-        System.out.println("Press ENTER to skip a field.");
-
-        System.out.print("New Full Name (" + user.getFullName() + "): ");
+        System.out.println("Editing profile for: " + user.getFullName());
+        
+        System.out.print("New Full Name (Enter to skip): ");
         String newName = sc.nextLine();
-        if (!newName.trim().isEmpty()) {
-            user.setFullName(newName.trim());
-        }
+        if (!newName.trim().isEmpty()) user.setFullName(newName.trim());
 
-        System.out.print("New Email (" + user.getEmail() + "): ");
+        System.out.print("New Email (Enter to skip): ");
         String newEmail = sc.nextLine();
-        if (!newEmail.trim().isEmpty()) {
-            user.setEmail(newEmail.trim());
-        }
+        if (!newEmail.trim().isEmpty()) user.setEmail(newEmail.trim());
 
-        System.out.print("New Phone Number (" + user.getPhone() + "): ");
-        String newPhone = sc.nextLine();
-        if (!newPhone.trim().isEmpty()) {
-        	try {
-        		long phoneNum = Long.parseLong(newPhone.trim());
-        		user.setPhone(phoneNum);
-        	}
-        	catch(NumberFormatException e) {
-        		System.out.println("Invalid phone number. Skipping update for phone.");
-        	}
-            // user.setPhone(newPhone.trim());
+        // Update the 'users' table
+        userDAO.updateBaseUser(user);
+        
+        // If the user is a customer, update the 'customers' table too
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            customerDAO.updateCustomer(user);
         }
-
-        customerDAO.updateCustomer(user); // persist changes
+        
         System.out.println("✅ Profile updated successfully!");
     }
 }

@@ -24,8 +24,8 @@ public class AdminServiceImpl implements AdminService {
 
     public AdminServiceImpl() {
         // Initialize with sample data
-        customerDAO.addCustomer("Amit");
-        customerDAO.addCustomer("Neha");
+//        customerDAO.addCustomer("Amit");
+//        customerDAO.addCustomer("Neha");
     }
 
     // -------- Diagram Functions --------
@@ -53,8 +53,13 @@ public class AdminServiceImpl implements AdminService {
     public void validateOwner(int ownerId) {
         FlipFitGymOwner owner = ownerDAO.getOwnerById(ownerId);
         if (owner != null) {
+            // 1. Update memory
             owner.setValidated(true);
-            System.out.println("✓ Owner validated");
+
+            // 2. PERSIST TO DATABASE (Missing Step)
+            ownerDAO.updateOwnerValidation(ownerId, true); 
+
+            System.out.println("✓ Owner " + ownerId + " validated in database.");
         } else {
             System.out.println("✗ Owner not found");
         }
@@ -168,16 +173,22 @@ public class AdminServiceImpl implements AdminService {
     public void approveOwner(int ownerId) {
         FlipFitGymOwner owner = ownerDAO.getOwnerById(ownerId);
         if (owner != null) {
+            // 1. Update memory
             owner.setApproved(true);
 
+            // 2. PERSIST TO DATABASE (Missing Step)
+            ownerDAO.updateOwnerApproval(ownerId, true); 
+
+            // 3. Update associated gym centers in the database as well
             List<FlipFitGymCenter> centers = gymCentreDAO.getAllCentres();
             for (FlipFitGymCenter center : centers) {
                 if (center.getOwnerId() == ownerId) {
-                    center.setApproved(true);
+                    // Persist center approval to DB
+                    gymCentreDAO.approveCenter(center.getCenterId()); 
                 }
             }
 
-            System.out.println("✓ Owner " + ownerId + " has been APPROVED!");
+            System.out.println("✓ Owner " + ownerId + " has been APPROVED and saved to Database!");
             System.out.println("✓ All gym centers for this owner are now visible to customers.");
         } else {
             System.out.println("✗ Owner not found");

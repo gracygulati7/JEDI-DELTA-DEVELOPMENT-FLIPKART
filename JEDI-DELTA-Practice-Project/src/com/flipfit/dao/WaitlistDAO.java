@@ -28,7 +28,7 @@ public class WaitlistDAO {
      * Adds a user to the waitlist for a slot.
      */
     public void addToWaitlist(int slotId, int userId) {
-        String query = "INSERT INTO waitlist (slotId, userId) VALUES (?, ?)";
+        String query = "INSERT INTO waitlist (slot_id, user_id) VALUES (?, ?)";
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, slotId);
             stmt.setInt(2, userId);
@@ -46,8 +46,8 @@ public class WaitlistDAO {
      * Returns null if there is no waitlisted user.
      */
     public Integer removeFromWaitlist(int slotId) {
-        String selectQuery = "SELECT waitlistId, userId FROM waitlist WHERE slotId = ? ORDER BY waitlistId ASC LIMIT 1 FOR UPDATE";
-        String deleteQuery = "DELETE FROM waitlist WHERE waitlistId = ?";
+        String selectQuery = "SELECT waitlist_id, user_id FROM waitlist WHERE slot_id = ? ORDER BY waitlist_id ASC LIMIT 1 FOR UPDATE";
+        String deleteQuery = "DELETE FROM waitlist WHERE waitlist_id = ?";
 
         try (Connection conn = getConnection()) {
             try {
@@ -57,8 +57,8 @@ public class WaitlistDAO {
                     selectStmt.setInt(1, slotId);
                     try (ResultSet rs = selectStmt.executeQuery()) {
                         if (rs.next()) {
-                            int waitlistId = rs.getInt("waitlistId");
-                            int userId = rs.getInt("userId");
+                            int waitlistId = rs.getInt("waitlist_id");
+                            int userId = rs.getInt("user_id");
 
                             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
                                 deleteStmt.setInt(1, waitlistId);
@@ -98,7 +98,7 @@ public class WaitlistDAO {
      * Returns true if there is at least one waitlisted customer for the slot.
      */
     public boolean hasWaitlistedCustomers(int slotId) {
-        String query = "SELECT COUNT(*) FROM waitlist WHERE slotId = ?";
+        String query = "SELECT COUNT(*) FROM waitlist WHERE slot_id = ?";
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, slotId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -117,7 +117,7 @@ public class WaitlistDAO {
      * Returns the size of the waitlist for a slot.
      */
     public int getWaitlistSize(int slotId) {
-        String query = "SELECT COUNT(*) FROM waitlist WHERE slotId = ?";
+        String query = "SELECT COUNT(*) FROM waitlist WHERE slot_id = ?";
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, slotId);
             try (ResultSet rs = stmt.executeQuery()) {

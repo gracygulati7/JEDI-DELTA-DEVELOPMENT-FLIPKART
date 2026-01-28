@@ -26,26 +26,69 @@ public class CustomerDAO {
         return DBUtil.getConnection();
     }
 
+//    public FlipFitCustomer addCustomer(String fullName) {
+//        String sql = "INSERT INTO customers (full_name) VALUES (?)";
+//        try (Connection conn = getConnection();
+//             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+//            ps.setString(1, fullName);
+//            int affected = ps.executeUpdate();
+//            if (affected == 0) throw new SQLException("Creating customer failed, no rows affected.");
+//            try (ResultSet keys = ps.getGeneratedKeys()) {
+//                if (keys.next()) {
+//                    int id = keys.getInt(1);
+//                    FlipFitCustomer c = new FlipFitCustomer();
+//                    c.setUserId(id);
+//                    c.setFullName(fullName);
+//                    return c;
+//                } else {
+//                    throw new SQLException("Creating customer failed, no ID obtained.");
+//                }
+//            }
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+    
     public FlipFitCustomer addCustomer(String fullName) {
-        String sql = "INSERT INTO customers (full_name) VALUES (?)";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, fullName);
-            int affected = ps.executeUpdate();
-            if (affected == 0) throw new SQLException("Creating customer failed, no rows affected.");
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                if (keys.next()) {
-                    int id = keys.getInt(1);
-                    FlipFitCustomer c = new FlipFitCustomer();
-                    c.setUserId(id);
-                    c.setFullName(fullName);
-                    return c;
-                } else {
-                    throw new SQLException("Creating customer failed, no ID obtained.");
+        // 1. Create the 'Identity' in the parent table
+        String userSql = "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)";
+        // 2. Create the 'Profile' in the child table
+        String customerSql = "INSERT INTO customers (customer_id, full_name, role) VALUES (?, ?, ?)";
+
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false); // Ensure both happen or neither happens
+
+            int newId = -1;
+            try (PreparedStatement psUser = conn.prepareStatement(userSql, Statement.RETURN_GENERATED_KEYS)) {
+                psUser.setString(1, fullName);
+                // Defaulting email/pass since this is auto-registration during login
+                psUser.setString(2, fullName.toLowerCase().replace(" ", "") + "@flipfit.com");
+                psUser.setString(3, "password123");
+                psUser.setString(4, "CUSTOMER");
+                psUser.executeUpdate();
+
+                ResultSet rs = psUser.getGeneratedKeys();
+                if (rs.next()) newId = rs.getInt(1);
+            }
+
+            if (newId != -1) {
+                try (PreparedStatement psCust = conn.prepareStatement(customerSql)) {
+                    psCust.setInt(1, newId); // Link the child to the parent
+                    psCust.setString(2, fullName);
+                    psCust.setString(3, "CUSTOMER");
+                    psCust.executeUpdate();
                 }
             }
+
+            conn.commit(); // Finalize the "Identity + Profile" creation
+
+            FlipFitCustomer c = new FlipFitCustomer();
+            c.setUserId(newId);
+            c.setFullName(fullName);
+            return c;
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error during customer inheritance setup: " + e.getMessage());
         }
     }
 
@@ -70,7 +113,7 @@ public class CustomerDAO {
     }
 
     public FlipFitCustomer getCustomerById(int id) {
-        String sql = "SELECT * FROM customers WHERE customerId = ? LIMIT 1";
+        String sql = "SELECT * FROM customers WHERE customer_id = ? LIMIT 1";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -100,7 +143,7 @@ public class CustomerDAO {
 
     public void updateCustomer(FlipFitCustomer user) {
         if (user == null) return;
-        String sql = "UPDATE customers SET full_name = ?, role = ?, contact = ?, payment_type = ?, payment_info = ? WHERE customerId = ?";
+        String sql = "UPDATE customers SET full_name = ?, role = ?, contact = ?, payment_type = ?, payment_info = ? WHERE customer_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getFullName());
@@ -120,7 +163,7 @@ public class CustomerDAO {
     }
 
     public void updatePaymentDetails(int userId, int paymentType, String paymentInfo) {
-        String sql = "UPDATE customers SET payment_type = ?, payment_info = ? WHERE customerId = ?";
+        String sql = "UPDATE customers SET payment_type = ?, payment_info = ? WHERE customer_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, paymentType);
@@ -134,7 +177,7 @@ public class CustomerDAO {
 
     private FlipFitCustomer mapRowToCustomer(ResultSet rs) throws SQLException {
         FlipFitCustomer c = new FlipFitCustomer();
-        c.setUserId(rs.getInt("customerId"));
+        c.setUserId(rs.getInt("customer_id"));
         c.setFullName(rs.getString("full_name"));
         c.setRole(rs.getString("role"));
         c.setContact(rs.getString("contact"));

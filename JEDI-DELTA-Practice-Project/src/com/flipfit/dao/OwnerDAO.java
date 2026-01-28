@@ -28,30 +28,21 @@ public class OwnerDAO {
     }
 
     public void addOwnerDetails(int ownerId, String pan, String aadhaar, String gstin) {
-        // FIX: Changed ownerid to owner_id and isApproved to is_approved
         String sql = "INSERT INTO Owner (owner_id, pan, aadhaar, gstin, is_approved) VALUES (?, ?, ?, ?, ?)";
-
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             pstmt.setInt(1, ownerId);
             pstmt.setString(2, pan);
             pstmt.setString(3, aadhaar); 
             pstmt.setString(4, gstin);
-            pstmt.setInt(5, 0);
-
+            pstmt.setInt(5, 0); // 0 = False/Pending
             pstmt.executeUpdate();
-            System.out.println("Owner professional details added successfully.");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        } catch (SQLException e) { throw new RuntimeException(e); }
     }
 
     public FlipFitGymOwner getOwnerById(int id) {
-        // FIX: Updated column names to owner_id and aadhaar; Updated table name to users
-        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin " +
+        // UPDATED SQL: Added is_approved and is_validated
+        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin, o.is_approved, o.is_validated " +
                 "FROM Owner o " +
                 "JOIN users u ON o.owner_id = u.user_id " +
                 "WHERE o.owner_id = ?";
@@ -62,13 +53,17 @@ public class OwnerDAO {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new FlipFitGymOwner(
+                    FlipFitGymOwner owner = new FlipFitGymOwner(
                             rs.getInt("owner_id"),
                             rs.getString("full_name"),
                             rs.getString("pan"),
                             rs.getString("aadhaar"),
                             rs.getString("gstin")
                     );
+                    // NEW: Set the boolean values from the DB
+                    owner.setApproved(rs.getInt("is_approved") == 1);
+                    owner.setValidated(rs.getInt("is_validated") == 1);
+                    return owner;
                 }
             }
         } catch (SQLException e) {
@@ -105,7 +100,78 @@ public class OwnerDAO {
         }
         return null;
     }
+    
+    
+    public FlipFitGymOwner getOwnerByEmail(String email) {
+        // Note: ensure 'owner' matches your DB table name case exactly
+        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin, o.is_approved " +
+                     "FROM Owner o " + 
+                     "JOIN users u ON o.owner_id = u.user_id " +
+                     "WHERE u.email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    FlipFitGymOwner owner = new FlipFitGymOwner(
+                            rs.getInt("owner_id"),
+                            rs.getString("full_name"),
+                            rs.getString("pan"),
+                            rs.getString("aadhaar"),
+                            rs.getString("gstin")
+                    );
+                    owner.setApproved(rs.getInt("is_approved") == 1);
+                    return owner;
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
+    }
+    
+    public int getUserIdByEmail(String email) {
+        String sql = "SELECT user_id FROM users WHERE email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt("user_id");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return -1;
+    }
+    
 
+    public void updateOwnerApproval(int ownerId, boolean isApproved) {
+        String sql = "UPDATE Owner SET is_approved = ? WHERE owner_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, isApproved ? 1 : 0);
+            pstmt.setInt(2, ownerId);
+            pstmt.executeUpdate();
+            System.out.println("[DB] Owner " + ownerId + " approval status updated to: " + isApproved);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void updateOwnerValidation(int ownerId, boolean isValidated) {
+        // Note: Make sure your 'Owner' table has an 'is_validated' column
+        String sql = "UPDATE Owner SET is_validated = ? WHERE owner_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, isValidated ? 1 : 0);
+            pstmt.setInt(2, ownerId);
+            pstmt.executeUpdate();
+            System.out.println("[DB] Owner " + ownerId + " validation status updated.");
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
     public void addOwner(String name) {
         // FIX: Updated to users table and full_name column
         String sql = "INSERT INTO users (full_name, role) VALUES (?, ?)";
@@ -187,4 +253,5 @@ public class OwnerDAO {
         }
         return 1;
     }
+   
 }
