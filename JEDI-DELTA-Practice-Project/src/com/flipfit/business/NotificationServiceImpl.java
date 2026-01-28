@@ -4,6 +4,9 @@ import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.Slot;
 import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.SlotDAO;
+import com.flipfit.exceptions.CentreNotFoundException;
+import com.flipfit.exceptions.DbConnectionException;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -33,11 +36,19 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendBookingConfirmation(int userId, int slotId, int centerId) {
-        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
-        FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
+    public void sendBookingConfirmation(int userId, int slotId, int centerId) throws DbConnectionException {
+        Slot slot = slotDAO.getSlotById(userId, slotId, centerId);
         
-        String centerName = (center != null) ? center.getGymName() : "Unknown Center";
+        // Handle potential missing center gracefully or throw exception
+        String centerName = "Unknown Center";
+        try {
+            FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
+            if(center != null) centerName = center.getGymName();
+        } catch (CentreNotFoundException e) {
+            // Log but don't fail notification construction completely
+            centerName = "Unknown Center (ID " + centerId + ")";
+        }
+        
         String slotTime = (slot != null) ? slot.getStartTime() + " - " + slot.getEndTime() : "Unknown Time";
         
         String message = "[" + LocalDateTime.now().format(timeFormatter) + "] ✓ BOOKING CONFIRMED\n" +
@@ -50,11 +61,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendWaitlistPromotion(int userId, int slotId, int centerId) {
-        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
-        FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
+    public void sendWaitlistPromotion(int userId, int slotId, int centerId) throws DbConnectionException {
+        Slot slot = slotDAO.getSlotById(userId, slotId, centerId);
         
-        String centerName = (center != null) ? center.getGymName() : "Unknown Center";
+        String centerName = "Unknown Center";
+        try {
+            FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
+            if(center != null) centerName = center.getGymName();
+        } catch (CentreNotFoundException e) {
+            centerName = "Unknown Center (ID " + centerId + ")";
+        }
+        
         String slotTime = (slot != null) ? slot.getStartTime() + " - " + slot.getEndTime() : "Unknown Time";
         
         String message = "[" + LocalDateTime.now().format(timeFormatter) + "] ⬆️  PROMOTED FROM WAITLIST\n" +
@@ -67,7 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendCancellationNotification(int userId, int slotId, int centerId) {
+    public void sendCancellationNotification(int userId, int slotId, int centerId) throws DbConnectionException {
         Slot slot = slotDAO.getSlotById(userId, slotId, centerId);
         String slotTime = (slot != null) ? slot.getStartTime() + " - " + slot.getEndTime() : "Unknown Time";
         
@@ -89,11 +106,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendSlotFullNotification(int userId, int slotId, int centerId) {
-        Slot slot = slotDAO.getSlotById(userId, slotId,centerId);
-        FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
+    public void sendSlotFullNotification(int userId, int slotId, int centerId) throws DbConnectionException {
+        Slot slot = slotDAO.getSlotById(userId, slotId, centerId);
         
-        String centerName = (center != null) ? center.getGymName() : "Unknown Center";
+        String centerName = "Unknown Center";
+        try {
+            FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
+            if(center != null) centerName = center.getGymName();
+        } catch (CentreNotFoundException e) {
+            centerName = "Unknown Center (ID " + centerId + ")";
+        }
+        
         String slotTime = (slot != null) ? slot.getStartTime() + " - " + slot.getEndTime() : "Unknown Time";
         
         String message = "[" + LocalDateTime.now().format(timeFormatter) + "] 📋 ADDED TO WAITLIST\n" +

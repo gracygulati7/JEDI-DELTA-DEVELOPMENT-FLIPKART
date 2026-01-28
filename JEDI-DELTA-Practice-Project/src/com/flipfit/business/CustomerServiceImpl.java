@@ -2,20 +2,18 @@ package com.flipfit.business;
 
 import com.flipfit.dao.CustomerDAO;
 import com.flipfit.bean.FlipFitCustomer;
+import com.flipfit.exceptions.DbConnectionException;
+import com.flipfit.exceptions.UserNotFoundException;
 import java.util.Scanner;
 
 public class CustomerServiceImpl implements CustomerService {
-	private final CustomerDAO customerDAO = CustomerDAO.getInstance();
+    private final CustomerDAO customerDAO = CustomerDAO.getInstance();
 
     @Override
-    public boolean makePayment(int userId, int amount) {
-
+    public boolean makePayment(int userId, int amount) throws DbConnectionException, UserNotFoundException {
+        
+        // DAO now throws UserNotFoundException if ID is missing, so we don't need to check == null
         FlipFitCustomer customer = customerDAO.getCustomerById(userId);
-
-        if (customer == null) {
-            System.out.println("❌ Customer not found.");
-            return false;
-        }
 
         Scanner sc = new Scanner(System.in);
         
@@ -34,12 +32,14 @@ public class CustomerServiceImpl implements CustomerService {
             case 1:
                 System.out.print("Enter Card Number (last 4 digits): ");
                 paymentInfo = sc.nextLine();
+                // DAO throws DbConnectionException
                 customerDAO.updatePaymentDetails(userId, 1, paymentInfo);
                 break;
 
             case 2:
                 System.out.print("Enter UPI ID: ");
                 paymentInfo = sc.nextLine();
+                // DAO throws DbConnectionException
                 customerDAO.updatePaymentDetails(userId, 2, paymentInfo);
                 break;
 
@@ -53,15 +53,10 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void viewPaymentInfo(int userId) {
-
-        FlipFitCustomer customer =
-                CustomerDAO.getInstance().getCustomerById(userId);
-
-        if (customer == null) {
-            System.out.println("❌ Customer not found.");
-            return;
-        }
+    public void viewPaymentInfo(int userId) throws DbConnectionException, UserNotFoundException {
+        
+        // DAO now throws UserNotFoundException if ID is missing
+        FlipFitCustomer customer = CustomerDAO.getInstance().getCustomerById(userId);
 
         System.out.println("\n===== PAYMENT DETAILS =====");
 
@@ -70,8 +65,7 @@ public class CustomerServiceImpl implements CustomerService {
             return;
         }
 
-        String paymentMethod =
-                (customer.getPaymentType() == 1) ? "Card" : "UPI";
+        String paymentMethod = (customer.getPaymentType() == 1) ? "Card" : "UPI";
 
         System.out.println("Payment Method: " + paymentMethod);
 
@@ -93,17 +87,6 @@ public class CustomerServiceImpl implements CustomerService {
     public boolean checkBookingConflicts(int userId, int slotId) {
         return false; 
     }
-
-//    @Override
-//    public boolean makePayment(int userId, int amount) {
-//        System.out.println("Payment of " + amount + " successful for user " + userId);
-//        return true;
-//    }
-
-//    @Override
-//    public void editDetails(int userId) {
-//        System.out.println("Updating profile for " + userId);
-//    }
 
     @Override
     public java.util.List<Object> viewCentres(String city) {

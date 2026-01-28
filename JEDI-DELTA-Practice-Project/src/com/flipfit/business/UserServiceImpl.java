@@ -7,6 +7,8 @@ import com.flipfit.bean.Slot;
 import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.SlotDAO;
+import com.flipfit.exceptions.DbConnectionException;
+import com.flipfit.exceptions.UserNotFoundException;
 import com.flipfit.bean.FlipFitCustomer;
 
 public class UserServiceImpl implements UserService {
@@ -16,7 +18,7 @@ public class UserServiceImpl implements UserService {
     private final GymCentreDAO gymCentreDAO = GymCentreDAO.getInstance();
 
     @Override
-    public List<Slot> findAvailableSlots(int centreId) {
+    public List<Slot> findAvailableSlots(int centreId) throws DbConnectionException {
         List<Slot> allSlots = slotDAO.getSlotsByCenterId(centreId);
         List<Slot> availableSlots = new ArrayList<>();
 
@@ -42,25 +44,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void viewProfile(int userId) {
-        FlipFitCustomer user = customerDAO.getCustomerById(userId); // works for customers
-        if (user != null) {
-            System.out.println("User ID: " + user.getUserId());
-            System.out.println("Name: " + user.getFullName());
-            System.out.println("Role: " + user.getRole());
-        } else {
-            System.out.println("User not found");
-        }
+    public void viewProfile(int userId) throws DbConnectionException, UserNotFoundException {
+        // DAO throws UserNotFoundException if missing, so no need for if (user != null)
+        FlipFitCustomer user = customerDAO.getCustomerById(userId); 
+        
+        System.out.println("User ID: " + user.getUserId());
+        System.out.println("Name: " + user.getFullName());
+        System.out.println("Role: " + user.getRole());
     }
 
     @Override
-    public void editProfile(int userId) {
+    public void editProfile(int userId) throws DbConnectionException, UserNotFoundException {
+        // DAO throws exception if not found
     	FlipFitCustomer user = customerDAO.getCustomerById(userId);
-
-        if (user == null) {
-            System.out.println("User not found");
-            return;
-        }
 
         Scanner sc = new Scanner(System.in);
 
@@ -89,10 +85,9 @@ public class UserServiceImpl implements UserService {
         	catch(NumberFormatException e) {
         		System.out.println("Invalid phone number. Skipping update for phone.");
         	}
-            // user.setPhone(newPhone.trim());
         }
 
-        customerDAO.updateCustomer(user); // persist changes
+        customerDAO.updateCustomer(user); // persists changes, throws DbConnectionException on error
         System.out.println("✅ Profile updated successfully!");
     }
 }

@@ -2,6 +2,8 @@ package com.flipfit.dao;
 
 import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.util.DBUtil;
+import com.flipfit.exceptions.DbConnectionException;
+import com.flipfit.exceptions.CentreNotFoundException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ public class GymCentreDAO {
         return DBUtil.getConnection();
     }
 
-    public void addGymCentre(FlipFitGymCenter gymCentre) {
+    public void addGymCentre(FlipFitGymCenter gymCentre) throws DbConnectionException {
         String sql = "INSERT INTO GymCentreTable (centre_id, owner_id, gym_name, city, state, pincode, capacity, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -41,14 +43,13 @@ public class GymCentreDAO {
             pstmt.setBoolean(8, gymCentre.isApproved());
 
             pstmt.executeUpdate();
-            System.out.println("Gym Center added to database successfully.");
+            
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error adding gym centre", e);
         }
     }
 
-    public List<FlipFitGymCenter> getAllCentres() {
+    public List<FlipFitGymCenter> getAllCentres() throws DbConnectionException {
         List<FlipFitGymCenter> centers = new ArrayList<>();
         String sql = "SELECT * FROM GymCentreTable";
 
@@ -69,13 +70,12 @@ public class GymCentreDAO {
                 centers.add(center);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error fetching all centres", e);
         }
         return centers;
     }
 
-    public FlipFitGymCenter getGymCentreById(int centreId) {
+    public FlipFitGymCenter getGymCentreById(int centreId) throws DbConnectionException, CentreNotFoundException {
         String sql = "SELECT * FROM GymCentreTable WHERE centre_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -93,42 +93,45 @@ public class GymCentreDAO {
                     );
                     center.setOwnerId(rs.getInt("owner_id"));
                     return center;
+                } else {
+                    // String.valueOf because your constructor expects a String ID
+                    throw new CentreNotFoundException(String.valueOf(centreId));
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error fetching gym centre by ID", e);
         }
-        return null;
     }
 
-    public void approveCenter(int centerId) {
+    public void approveCenter(int centerId) throws DbConnectionException, CentreNotFoundException {
         String sql = "UPDATE GymCentreTable SET is_approved = 1 WHERE centre_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, centerId);
-            pstmt.executeUpdate();
-            System.out.println("Center approved successfully.");
+            int affected = pstmt.executeUpdate();
+            if (affected == 0) {
+                 throw new CentreNotFoundException(String.valueOf(centerId));
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error approving centre", e);
         }
     }
 
-    public void deleteGymCentre(int centreId) {
+    public void deleteGymCentre(int centreId) throws DbConnectionException, CentreNotFoundException {
         String sql = "DELETE FROM GymCentreTable WHERE centre_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, centreId);
-            pstmt.executeUpdate();
-            System.out.println("Gym Center deleted successfully.");
+            int affected = pstmt.executeUpdate();
+            if (affected == 0) {
+                 throw new CentreNotFoundException(String.valueOf(centreId));
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error deleting gym centre", e);
         }
     }
 
-    public int getNextCentreId() {
+    public int getNextCentreId() throws DbConnectionException {
         String sql = "SELECT MAX(centre_id) FROM GymCentreTable";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
@@ -141,13 +144,12 @@ public class GymCentreDAO {
                 return max + 1;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error generating next centre ID", e);
         }
         return 1;
     }
 
-    public boolean centreIdExists(int centreId) {
+    public boolean centreIdExists(int centreId) throws DbConnectionException {
         String sql = "SELECT 1 FROM GymCentreTable WHERE centre_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -156,8 +158,7 @@ public class GymCentreDAO {
                 return rs.next();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+             throw new DbConnectionException("Error checking centre existence", e);
         }
     }
 }

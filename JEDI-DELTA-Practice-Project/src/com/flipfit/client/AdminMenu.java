@@ -1,4 +1,5 @@
 package com.flipfit.client;
+
 import java.util.Scanner;
 import java.util.List;
 import com.flipfit.business.AdminService;
@@ -10,6 +11,7 @@ import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.SlotDAO;
 import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.Slot;
+import com.flipfit.exceptions.*;
 
 public class AdminMenu {
 
@@ -41,102 +43,110 @@ public class AdminMenu {
             System.out.print("Enter choice: ");
             choice = InputValidator.readInt(sc);
 
-            switch (choice) {
-                case 1:
-                    adminService.viewAllGymOwners();
-                    break;
+            try {
+                switch (choice) {
+                    case 1:
+                        adminService.viewAllGymOwners();
+                        break;
 
-                case 2:
-                    System.out.print("Enter Owner ID to approve: ");
-                    int ownerId = InputValidator.readInt(sc);
-                    adminService.approveOwner(ownerId);
-                    break;
+                    case 2:
+                        System.out.print("Enter Owner ID to approve: ");
+                        int ownerId = InputValidator.readInt(sc);
+                        adminService.approveOwner(ownerId);
+                        break;
 
-                case 3:
-                    System.out.print("Enter Owner ID to validate: ");
-                    ownerId = InputValidator.readInt(sc);
-                    adminService.validateOwner(ownerId);
-                    break;
+                    case 3:
+                        System.out.print("Enter Owner ID to validate: ");
+                        ownerId = InputValidator.readInt(sc);
+                        adminService.validateOwner(ownerId);
+                        break;
 
-                case 4:
-                    System.out.print("Enter Owner ID to delete: ");
-                    ownerId = InputValidator.readInt(sc);
-                    adminService.deleteOwner(ownerId);
-                    break;
+                    case 4:
+                        System.out.print("Enter Owner ID to delete: ");
+                        ownerId = InputValidator.readInt(sc);
+                        adminService.deleteOwner(ownerId);
+                        break;
 
-                case 5:
-                    adminService.viewFFCustomers();
-                    break;
+                    case 5:
+                        adminService.viewFFCustomers();
+                        break;
 
-                case 6:
-                    System.out.print("Center ID: ");
-                    int centerId = InputValidator.readInt(sc);
-                    System.out.print("Gym Name: ");
-                    String gymName = sc.next();
-                    System.out.print("City: ");
-                    String city = sc.next();
-                    System.out.print("State: ");
-                    String state = sc.next();
-                    System.out.print("Pincode: ");
-                    int pincode = InputValidator.readInt(sc);
-                    System.out.print("Capacity: ");
-                    int capacity = InputValidator.readInt(sc);
+                    case 6:
+                        System.out.print("Center ID: ");
+                        int centerId = InputValidator.readInt(sc);
+                        System.out.print("Gym Name: ");
+                        String gymName = sc.next();
+                        System.out.print("City: ");
+                        String city = sc.next();
+                        System.out.print("State: ");
+                        String state = sc.next();
+                        System.out.print("Pincode: ");
+                        int pincode = InputValidator.readInt(sc);
+                        System.out.print("Capacity: ");
+                        int capacity = InputValidator.readInt(sc);
 
-                    adminService.addGymCenter(centerId, gymName, city, state, pincode, capacity);
-                    break;
+                        adminService.addGymCenter(centerId, gymName, city, state, pincode, capacity);
+                        break;
 
-                case 7:
-                    viewGymCentersWithSlots();
-                    break;
+                    case 7:
+                        viewGymCentersWithSlots();
+                        break;
 
-                case 8:
-                    System.out.print("Center ID: ");
-                    centerId = InputValidator.readInt(sc);
-                    System.out.print("Slot ID: ");
-                    int slotId = InputValidator.readInt(sc);
-                    System.out.print("Start Time (HH:MM format, e.g., 5:30, 14:45): ");
-                    String startTime = sc.next();
-                    System.out.print("End Time (HH:MM format, e.g., 6:30, 15:45): ");
-                    String endTime = sc.next();
-                    System.out.print("Seat Capacity: ");
-                    int seats = InputValidator.readInt(sc);
+                    case 8:
+                        System.out.print("Center ID: ");
+                        centerId = InputValidator.readInt(sc);
+                        System.out.print("Slot ID: ");
+                        int slotId = InputValidator.readInt(sc);
+                        System.out.print("Start Time (HH:MM): ");
+                        String startTime = sc.next();
+                        System.out.print("End Time (HH:MM): ");
+                        String endTime = sc.next();
+                        System.out.print("Seat Capacity: ");
+                        int seats = InputValidator.readInt(sc);
 
-                    adminService.addSlotInfo(centerId, slotId, startTime, endTime, seats);
-                    break;
+                        adminService.addSlotInfo(centerId, slotId, startTime, endTime, seats);
+                        break;
 
-                case 9:
-                    System.out.print("Center ID: ");
-                    centerId = InputValidator.readInt(sc);
-                    adminService.viewSlots(centerId);
-                    break;
+                    case 9:
+                        System.out.print("Center ID: ");
+                        centerId = InputValidator.readInt(sc);
+                        adminService.viewSlots(centerId);
+                        break;
 
-                case 10:
-                    viewAvailableSlotsUserService(); 
-                    break;
-                    
-                case 11:
-                    System.out.print("Enter your Admin ID: ");
-                    int adminId = InputValidator.readInt(sc);
-                    userService.viewProfile(adminId);
-                    break;
+                    case 10:
+                        viewAvailableSlotsUserService(); 
+                        break;
+                        
+                    case 11:
+                        System.out.print("Enter your Admin ID: ");
+                        int adminId = InputValidator.readInt(sc);
+                        userService.viewProfile(adminId);
+                        break;
 
-                case 12:
-                    System.out.print("Enter your Admin ID: ");
-                    adminId = InputValidator.readInt(sc);
-                    userService.editProfile(adminId);
-                    break;
+                    case 12:
+                        System.out.print("Enter your Admin ID: ");
+                        adminId = InputValidator.readInt(sc);
+                        userService.editProfile(adminId);
+                        break;
 
-                case 0:
-                    System.out.println("Logging out...");
-                    break;
+                    case 0:
+                        System.out.println("Logging out...");
+                        break;
 
-                default:
-                    System.out.println("Invalid choice!");
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+            } catch (DbConnectionException e) {
+                System.out.println("System Error: " + e.getMessage());
+            } catch (UserNotFoundException | CentreNotFoundException e) {
+                System.out.println("Error: " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("An unexpected error occurred: " + e.getMessage());
             }
         } while (choice != 0);
     }
 
-    private void viewGymCentersWithSlots() {
+    private void viewGymCentersWithSlots() throws DbConnectionException {
         System.out.println("\n===== ALL GYM CENTERS WITH SLOTS =====");
         List<FlipFitGymCenter> centers = gymCentreDAO.getAllCentres();
 
@@ -148,7 +158,6 @@ public class AdminMenu {
         for (FlipFitGymCenter center : centers) {
             System.out.println("\n" + center);
 
-            // Get and display slots for this center
             List<Slot> slots = slotDAO.getSlotsByCenterId(center.getGymId());
             if (slots.isEmpty()) {
                 System.out.println("  └─ No slots available for this center");
@@ -165,8 +174,7 @@ public class AdminMenu {
         }
     }
 
-    // ---method using UserService ---
-    private void viewAvailableSlotsUserService() {
+    private void viewAvailableSlotsUserService() throws DbConnectionException {
         System.out.println("\n===== ALL AVAILABLE SLOTS (via UserService) =====");
         List<FlipFitGymCenter> centers = gymCentreDAO.getAllCentres();
 

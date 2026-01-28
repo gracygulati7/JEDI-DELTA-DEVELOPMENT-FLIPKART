@@ -1,14 +1,16 @@
 package com.flipfit.business;
 
-public interface NotificationService{
-    public void sendBookingConfirmation(int userId, int slotId,int centerId);
+import com.flipfit.exceptions.DbConnectionException;
 
-    public void sendWaitlistPromotion(int userId, int slotId,int centerId);
+public interface NotificationService {
+    // These methods query the DB to get names/times, so they might fail with DB error
+    void sendBookingConfirmation(int userId, int slotId, int centerId) throws DbConnectionException;
+
+    void sendWaitlistPromotion(int userId, int slotId, int centerId) throws DbConnectionException;
     
-    public void sendCancellationNotification(int userId, int slotId, int centerId);
+    void sendCancellationNotification(int userId, int slotId, int centerId) throws DbConnectionException;
     
-    public void sendConflictWarning(int userId, String message);
+    void sendConflictWarning(int userId, String message); // In-memory only, no DB exception needed
     
-    public void sendSlotFullNotification(int userId, int slotId,int centerId);
-    
+    void sendSlotFullNotification(int userId, int slotId, int centerId) throws DbConnectionException;
 }

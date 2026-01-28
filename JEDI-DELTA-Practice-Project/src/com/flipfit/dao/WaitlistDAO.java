@@ -1,6 +1,7 @@
 package com.flipfit.dao;
 
 import com.flipfit.util.DBUtil;
+import com.flipfit.exceptions.DbConnectionException;
 
 import java.sql.*;
 
@@ -24,82 +25,85 @@ public class WaitlistDAO {
         return DBUtil.getConnection();
     }
 
-    /**
-     * Adds a user to the waitlist for a slot.
-     */
-    public void addToWaitlist(int slotId, int userId) {
+    public void addToWaitlist(int slotId, int userId) throws DbConnectionException {
         String query = "INSERT INTO waitlist (slotId, userId) VALUES (?, ?)";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, slotId);
             stmt.setInt(2, userId);
             stmt.executeUpdate();
+            // Optional: You can keep System.out for debugging, or remove for production
             System.out.println("[DB] User " + userId + " added to waitlist for slot " + slotId);
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error adding user " + userId + " to waitlist", e);
         }
     }
 
-    /**
-     * Removes the oldest waitlisted user for a slot and returns their userId.
-     * This is done inside a transaction and deletes by waitlistId to avoid races.
-     * Returns null if there is no waitlisted user.
-     */
-    public Integer removeFromWaitlist(int slotId) {
+    public Integer removeFromWaitlist(int slotId) throws DbConnectionException {
         String selectQuery = "SELECT waitlistId, userId FROM waitlist WHERE slotId = ? ORDER BY waitlistId ASC LIMIT 1 FOR UPDATE";
         String deleteQuery = "DELETE FROM waitlist WHERE waitlistId = ?";
 
-        try (Connection conn = getConnection()) {
-            try {
-                conn.setAutoCommit(false);
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false); // Start Transaction
 
-                try (PreparedStatement selectStmt = conn.prepareStatement(selectQuery)) {
-                    selectStmt.setInt(1, slotId);
-                    try (ResultSet rs = selectStmt.executeQuery()) {
-                        if (rs.next()) {
-                            int waitlistId = rs.getInt("waitlistId");
-                            int userId = rs.getInt("userId");
+            int userId = -1;
+            boolean found = false;
 
-                            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
-                                deleteStmt.setInt(1, waitlistId);
-                                deleteStmt.executeUpdate();
-                            }
+            try (PreparedStatement selectStmt = conn.prepareStatement(selectQuery)) {
+                selectStmt.setInt(1, slotId);
+                try (ResultSet rs = selectStmt.executeQuery()) {
+                    if (rs.next()) {
+                        int waitlistId = rs.getInt("waitlistId");
+                        userId = rs.getInt("userId");
+                        found = true;
 
-                            conn.commit();
-                            return userId;
-                        } else {
-                            conn.rollback();
-                            return null;
+                        // Delete the entry
+                        try (PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
+                            deleteStmt.setInt(1, waitlistId);
+                            deleteStmt.executeUpdate();
                         }
                     }
                 }
-            } catch (SQLException ex) {
+            }
+
+            if (found) {
+                conn.commit();
+                return userId;
+            } else {
+                conn.rollback();
+                return null;
+            }
+
+        } catch (SQLException e) {
+            // Handle Rollback
+            if (conn != null) {
                 try {
                     conn.rollback();
-                } catch (SQLException rollbackEx) {
-                    rollbackEx.printStackTrace();
-                }
-                ex.printStackTrace();
-                throw new RuntimeException(ex);
-            } finally {
-                try {
-                    conn.setAutoCommit(true);
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                } catch (SQLException ex) {
+                    // Log this, don't throw it, or it masks the original error
+                    System.err.println("Error during rollback: " + ex.getMessage());
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error removing user from waitlist for slot " + slotId, e);
+        } finally {
+            // Reset AutoCommit
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close(); // Important: Close connection manually since we didn't use try-with-resources for 'conn'
+                } catch (SQLException e) {
+                    System.err.println("Error closing connection: " + e.getMessage());
+                }
+            }
         }
     }
 
-    /**
-     * Returns true if there is at least one waitlisted customer for the slot.
-     */
-    public boolean hasWaitlistedCustomers(int slotId) {
+    public boolean hasWaitlistedCustomers(int slotId) throws DbConnectionException {
         String query = "SELECT COUNT(*) FROM waitlist WHERE slotId = ?";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, slotId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -107,18 +111,15 @@ public class WaitlistDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error checking waitlist status", e);
         }
         return false;
     }
 
-    /**
-     * Returns the size of the waitlist for a slot.
-     */
-    public int getWaitlistSize(int slotId) {
+    public int getWaitlistSize(int slotId) throws DbConnectionException {
         String query = "SELECT COUNT(*) FROM waitlist WHERE slotId = ?";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, slotId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -126,8 +127,7 @@ public class WaitlistDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error fetching waitlist size", e);
         }
         return 0;
     }

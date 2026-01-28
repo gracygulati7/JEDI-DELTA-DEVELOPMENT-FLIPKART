@@ -1,10 +1,11 @@
 package com.flipfit.client;
+
 import java.util.Scanner;
 import com.flipfit.helper.InputValidator;
+import com.flipfit.exceptions.*;
 
 public class LoginMenu {
     
-    // Instantiate service here or in constructor
     private com.flipfit.business.GymOwnerService gymOwnerService = new com.flipfit.business.GymOwnerServiceImpl();
     
     public int showStartMenu(Scanner sc) {
@@ -36,7 +37,6 @@ public class LoginMenu {
         sc.nextLine(); // Clear buffer
         String name = sc.nextLine();
         
-        // ADDED EMAIL AND PASSWORD INPUTS
         System.out.print("Enter email: ");
         String email = sc.next();
         System.out.print("Enter password: ");
@@ -49,11 +49,15 @@ public class LoginMenu {
         System.out.print("Enter GSTIN: ");
         String gstin = sc.next();
         
-        // Updated service call with 6 parameters
-        gymOwnerService.registerOwner(name, email, password, pan, aadhaar, gstin);
-        
-        System.out.println("\n➤ Registration successful!");
-        System.out.println("➤ You can now login with email: " + email);
+        try {
+            gymOwnerService.registerOwner(name, email, password, pan, aadhaar, gstin);
+            System.out.println("\n➤ Registration successful!");
+            System.out.println("➤ You can now login with email: " + email);
+        } catch (DbConnectionException e) {
+            System.out.println("Error: Registration failed due to system error. " + e.getMessage());
+        } catch (UserNotFoundException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
     
     public int login(Scanner sc) {
@@ -70,55 +74,62 @@ public class LoginMenu {
         System.out.print("Enter your choice: ");
         int roleChoice = InputValidator.readInt(sc);
         
-        switch (roleChoice) {
-        case 1:
-            // Important: Logic should ideally verify password here too
-            com.flipfit.dao.OwnerDAO ownerDAO = com.flipfit.dao.OwnerDAO.getInstance();
-            // Since we use email for login, update your DAO to getOwnerByEmail 
-            // Or use getOwnerByName if you still want to use 'full_name' as username
-            com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByName(email); 
-            
-            if (owner == null) {
-                System.out.println("\n✗ Gym Owner account not found.");
-                return 1;
+        try {
+            switch (roleChoice) {
+            case 1:
+                com.flipfit.dao.OwnerDAO ownerDAO = com.flipfit.dao.OwnerDAO.getInstance();
+                try {
+                    com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByName(email);
+                    
+                    // In a real app, verify password here
+                    if (!owner.isApproved()) {
+                        System.out.println("\n✗ Your account is still pending admin approval.");
+                        return 1;
+                    }
+                    
+                    System.out.println("\n✓ Logged in as Gym Owner: " + owner.getName());
+                    GymOwnerMenu gymOwnerMenu = new GymOwnerMenu();
+                    gymOwnerMenu.showMenu(sc, owner.getOwnerId());
+                    
+                } catch (UserNotFoundException e) {
+                    System.out.println("\n✗ Gym Owner account not found.");
+                    return 1;
+                }
+                break;
+                
+            case 2:
+                System.out.println("\n✓ Logged in as Gym Customer");
+                com.flipfit.dao.CustomerDAO customerDAO = com.flipfit.dao.CustomerDAO.getInstance();
+                // getOrCreate might throw DB exception
+                com.flipfit.bean.FlipFitCustomer customer = customerDAO.getOrCreateCustomerByName(email);
+                CustomerMenu customerMenu = new CustomerMenu();
+                customerMenu.showMenu(sc, customer.getUserId());
+                break;
+                
+            case 3:
+                com.flipfit.dao.AdminDAO adminDAO = com.flipfit.dao.AdminDAO.getInstance();
+                try {
+                    boolean isValidAdmin = adminDAO.login(email, password);
+                    if (!isValidAdmin) {
+                        System.out.println("\n✗ Invalid admin credentials");
+                        return 1;
+                    }
+                    System.out.println("\n✓ Logged in as Gym Admin");
+                    AdminMenu adminMenu = new AdminMenu();
+                    adminMenu.showMenu(sc);
+                } catch (WrongCredentialsException e) {
+                    System.out.println("\n✗ " + e.getMessage());
+                    return 1;
+                }
+                break;
+                
+            default:
+                System.out.println("Invalid role selected");
+                return login(sc);
             }
-            
-            // Note: In a real app, you'd check password here: if(!owner.getPassword().equals(password))...
-
-            if (!owner.isApproved()) {
-                System.out.println("\n✗ Your account is still pending admin approval.");
-                return 1;
-            }
-            
-            System.out.println("\n✓ Logged in as Gym Owner: " + owner.getName());
-            GymOwnerMenu gymOwnerMenu = new GymOwnerMenu();
-            gymOwnerMenu.showMenu(sc, owner.getOwnerId());
-            break;
-            
-        case 2:
-            // Similar logic for Customer using customerDAO
-            System.out.println("\n✓ Logged in as Gym Customer");
-            com.flipfit.dao.CustomerDAO customerDAO = com.flipfit.dao.CustomerDAO.getInstance();
-            com.flipfit.bean.FlipFitCustomer customer = customerDAO.getOrCreateCustomerByName(email);
-            CustomerMenu customerMenu = new CustomerMenu();
-            customerMenu.showMenu(sc, customer.getUserId());
-            break;
-            
-        case 3:
-            com.flipfit.dao.AdminDAO adminDAO = com.flipfit.dao.AdminDAO.getInstance();
-            boolean isValidAdmin = adminDAO.login(email, password);
-            if (!isValidAdmin) {
-                System.out.println("\n✗ Invalid admin credentials");
-                return 1;
-            }
-            System.out.println("\n✓ Logged in as Gym Admin");
-            AdminMenu adminMenu = new AdminMenu();
-            adminMenu.showMenu(sc);
-            break;
-            
-        default:
-            System.out.println("Invalid role selected");
-            return login(sc);
+        } catch (DbConnectionException e) {
+            System.out.println("System Error: Unable to connect to database. " + e.getMessage());
+            return 1;
         }
         
         return showLogoutMenu(sc);

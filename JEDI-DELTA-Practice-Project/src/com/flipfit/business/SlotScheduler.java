@@ -5,6 +5,10 @@ import com.flipfit.bean.Slot;
 import com.flipfit.dao.BookingDAO;
 import com.flipfit.dao.SlotDAO;
 import com.flipfit.dao.WaitlistDAO;
+import com.flipfit.exceptions.BookingFailedException;
+import com.flipfit.exceptions.DbConnectionException;
+import com.flipfit.exceptions.UserNotFoundException;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +22,8 @@ public class SlotScheduler {
 	private final NotificationService notificationService = NotificationServiceImpl.getInstance();
 	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
-	public void monitorCancellations(int bookingId) {
+	// Added throws DbConnectionException, BookingFailedException
+	public void monitorCancellations(int bookingId) throws DbConnectionException, BookingFailedException {
 	    Booking booking = bookingDAO.getBookingById(bookingId);
 	    if (booking == null || booking.isDeleted() || booking.getStatus() == Booking.BookingStatus.CANCELLED) {
 	        return;
@@ -26,12 +31,11 @@ public class SlotScheduler {
 
 	    int slotId = booking.getSlotId();
 	    int centerId = booking.getCenterId();
-	    int userId = booking.getUserId(); // Get the user ID to notify them
+	    int userId = booking.getUserId();
 
 	    bookingDAO.cancelBooking(bookingId); 
 	    System.out.println("[SCHEDULER] Booking " + bookingId + " marked as cancelled");
 
-	    // TRIGGER THE NOTIFICATION HERE
 	    notificationService.sendCancellationNotification(userId, slotId, centerId);
 
 	    Slot slot = slotDAO.getSlotById(slotId); 
@@ -43,7 +47,8 @@ public class SlotScheduler {
 	    }
 	}
 
-	public void triggerWaitlistPromotion(int slotId, int centerId) {
+	// Added throws DbConnectionException
+	public void triggerWaitlistPromotion(int slotId, int centerId) throws DbConnectionException {
 		Integer nextUserId = waitlistDAO.removeFromWaitlist(slotId);
 		if (nextUserId == null)
 			return;
@@ -60,18 +65,22 @@ public class SlotScheduler {
 		}
 
 		CustomerService customerService = new CustomerServiceImpl();
-		if (customerService.makePayment(nextUserId, slot.getFee())) {
-			slot.setSeatsAvailable(slot.getSeatsAvailable() - 1);
-			Booking promotion = bookingDAO.createBooking(nextUserId, slotId);
-			promotion.setStatus(Booking.BookingStatus.CONFIRMED);
-			promotion.setCenterId(centerId);
-			notificationService.sendWaitlistPromotion(nextUserId, slotId, centerId);
-		} else {
-			waitlistDAO.addToWaitlist(slotId, nextUserId);
+		try {
+			if (customerService.makePayment(nextUserId, slot.getFee())) {
+				slot.setSeatsAvailable(slot.getSeatsAvailable() - 1);
+				Booking promotion = bookingDAO.createBooking(nextUserId, slotId);
+				promotion.setStatus(Booking.BookingStatus.CONFIRMED);
+				promotion.setCenterId(centerId);
+				notificationService.sendWaitlistPromotion(nextUserId, slotId, centerId);
+			} else {
+				waitlistDAO.addToWaitlist(slotId, nextUserId);
+			}
+		} catch (UserNotFoundException e) {
+			System.err.println("Waitlist promotion failed: User " + nextUserId + " not found.");
 		}
 	}
 
-	private boolean hasTimeConflict(int userId, LocalDate date, String startTime, String endTime, int newCenterId) {
+	private boolean hasTimeConflict(int userId, LocalDate date, String startTime, String endTime, int newCenterId) throws DbConnectionException {
 		List<Booking> userBookings = bookingDAO.getBookingsByUserId(userId);
 		LocalTime newStart = parseTime(startTime);
 		LocalTime newEnd = parseTime(endTime);
@@ -101,7 +110,7 @@ public class SlotScheduler {
 		}
 	}
 
-	public boolean validateBooking(int userId, int slotId, int centerId) {
+	public boolean validateBooking(int userId, int slotId, int centerId) throws DbConnectionException {
 		Slot slot = slotDAO.getSlotById(slotId);
 		if (slot == null || slot.isExpired())
 			return false;
@@ -112,7 +121,7 @@ public class SlotScheduler {
 		return !hasTimeConflict(userId, slot.getDate(), slot.getStartTime(), slot.getEndTime(), centerId);
 	}
 
-	public List<Booking> getUserBookingsForDate(int userId, LocalDate date) {
+	public List<Booking> getUserBookingsForDate(int userId, LocalDate date) throws DbConnectionException {
 		List<Booking> activeBookings = new ArrayList<>();
 		for (Booking b : bookingDAO.getBookingsByUserId(userId)) {
 			if (!b.isDeleted() && b.getStatus() == Booking.BookingStatus.CONFIRMED && b.getSlotDate().equals(date)) {

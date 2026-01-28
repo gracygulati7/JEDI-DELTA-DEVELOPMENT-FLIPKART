@@ -6,6 +6,7 @@ import com.flipfit.business.GymOwnerServiceImpl;
 import com.flipfit.helper.InputValidator;
 import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.SlotDAO;
+import com.flipfit.exceptions.*;
 
 public class GymOwnerMenu {
 
@@ -28,40 +29,47 @@ public class GymOwnerMenu {
             System.out.print("Enter your choice: ");
             choice = InputValidator.readInt(sc);
 
-            switch (choice) {
-            case 1:
-                addGymCentre(sc, ownerId);
-                break;
-            case 2:
-                gymOwnerService.viewCentres(ownerId);
-                break;
-            case 3:
-                addSlot(sc, ownerId);
-                break;
-            case 4:
-                viewSlots(sc);
-                break;
-            case 5:
-                viewCustomers(sc);
-                break;
-            case 6:
-                gymOwnerService.viewProfile(ownerId);
-                break;
-            case 7:
-                gymOwnerService.editDetails(ownerId);
-                break;
-            case 0:
-                System.out.println("Logging out from Gym Owner Menu...");
-                break;
-            default:
-                System.out.println("Invalid choice! Please try again.");
+            try {
+                switch (choice) {
+                case 1:
+                    addGymCentre(sc, ownerId);
+                    break;
+                case 2:
+                    gymOwnerService.viewCentres(ownerId);
+                    break;
+                case 3:
+                    addSlot(sc, ownerId);
+                    break;
+                case 4:
+                    viewSlots(sc);
+                    break;
+                case 5:
+                    viewCustomers(sc);
+                    break;
+                case 6:
+                    gymOwnerService.viewProfile(ownerId);
+                    break;
+                case 7:
+                    gymOwnerService.editDetails(ownerId);
+                    break;
+                case 0:
+                    System.out.println("Logging out from Gym Owner Menu...");
+                    break;
+                default:
+                    System.out.println("Invalid choice! Please try again.");
+                }
+            } catch (DbConnectionException e) {
+                System.out.println("System Error: " + e.getMessage());
+            } catch (UserNotFoundException e) {
+                System.out.println("Error: User data not found. " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("An unexpected error occurred: " + e.getMessage());
             }
         } while (choice != 0);
     }
 
-    private void addGymCentre(Scanner sc, int ownerId) {
+    private void addGymCentre(Scanner sc, int ownerId) throws DbConnectionException {
         System.out.println("\n----- Add New Gym Centre -----");
-        // Auto-generate centre ID
         int centerId = gymCentreDAO.getNextCentreId();
         System.out.println("Centre ID (Auto-generated): " + centerId);
         
@@ -79,7 +87,7 @@ public class GymOwnerMenu {
         gymOwnerService.addCentre(ownerId, centerId, gymName, city, state, pincode, capacity);
     }
 
-    private void addSlot(Scanner sc, int ownerId) {
+    private void addSlot(Scanner sc, int ownerId) throws DbConnectionException {
         System.out.println("\n----- Add New Slot -----");
         System.out.print("Centre ID: ");
         int centerId = InputValidator.readInt(sc);
@@ -89,11 +97,10 @@ public class GymOwnerMenu {
             return;
         }
         
-        // Auto-generate slot ID
         int slotId = slotDAO.getNextSlotId();
         System.out.println("Slot ID (Auto-generated): " + slotId);
         
-        System.out.print("Slot Date (YYYY-MM-DD format, e.g., 2026-01-25): ");
+        System.out.print("Slot Date (YYYY-MM-DD format): ");
         String dateStr = sc.next();
         java.time.LocalDate date;
         try {
@@ -103,9 +110,9 @@ public class GymOwnerMenu {
             return;
         }
         
-        System.out.print("Start Time (HH:MM format, e.g., 5:30, 14:45): ");
+        System.out.print("Start Time (HH:MM): ");
         String startTime = sc.next();
-        System.out.print("End Time (HH:MM format, e.g., 6:30, 15:45): ");
+        System.out.print("End Time (HH:MM): ");
         String endTime = sc.next();
         System.out.print("Number of Seats Available: ");
         int seats = InputValidator.readInt(sc);
@@ -113,18 +120,17 @@ public class GymOwnerMenu {
         gymOwnerService.addSlot(centerId, slotId, date, startTime, endTime, seats);
     }
 
-    private void viewSlots(Scanner sc) {
+    private void viewSlots(Scanner sc) throws DbConnectionException {
         System.out.println("\n----- View Slots -----");
         System.out.print("Enter Centre ID: ");
         int centerId = InputValidator.readInt(sc);
         gymOwnerService.viewSlots(centerId);
     }
 
-    private void viewCustomers(Scanner sc) {
+    private void viewCustomers(Scanner sc) throws DbConnectionException, UserNotFoundException {
         System.out.println("\n----- View Customers -----");
         System.out.print("Enter Centre ID: ");
-        int centreId = InputValidator.readInt(sc);
-        gymOwnerService.viewCustomers(centreId);
+        int centerId = InputValidator.readInt(sc);
+        gymOwnerService.viewCustomers(centerId);
     }
-
 }
