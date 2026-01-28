@@ -101,17 +101,69 @@ public class GymOwnerServiceImpl implements GymOwnerService {
         }
     }
 
+//    @Override
+//    public void viewCustomers(int ownerId, int centerId) {
+//        FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
+//
+//        // SECURITY CHECK
+//        if (center != null && center.getOwnerId() == ownerId) {
+//            System.out.println("\n----- Customers & Bookings for Centre " + centerId + " -----");
+//            // ... (your existing booking display logic) ...
+//        } else {
+//            System.out.println("❌ Error: You do not have permission to view customers for Center ID " + centerId);
+//        }
+//    }
+
+
     @Override
     public void viewCustomers(int ownerId, int centerId) {
+        // 1. Verify that the center exists and actually belongs to this owner
         FlipFitGymCenter center = gymCentreDAO.getGymCentreById(centerId);
 
-        // SECURITY CHECK
-        if (center != null && center.getOwnerId() == ownerId) {
-            System.out.println("\n----- Customers & Bookings for Centre " + centerId + " -----");
-            // ... (your existing booking display logic) ...
-        } else {
-            System.out.println("❌ Error: You do not have permission to view customers for Center ID " + centerId);
+        if (center == null) {
+            System.out.println("❌ Error: Gym Centre with ID " + centerId + " not found.");
+            return;
         }
+
+        if (center.getOwnerId() != ownerId) {
+            System.out.println("❌ Error: You do not have permission to view bookings for this centre.");
+            return;
+        }
+
+        System.out.println("\n================================================================");
+        System.out.println("   BOOKINGS FOR CENTRE: " + center.getGymName() + " (ID: " + centerId + ")");
+        System.out.println("================================================================");
+        System.out.printf("%-10s | %-15s | %-20s | %-10s%n", "Slot ID", "Time", "Customer Name", "Status");
+        System.out.println("----------------------------------------------------------------");
+
+        // 2. Get all slots for this gym center
+        List<Slot> slots = slotDAO.getSlotsByCenterId(centerId);
+        boolean hasBookings = false;
+
+        for (Slot slot : slots) {
+            // 3. For each slot, get the confirmed bookings
+            // We use BookingDAO here (Make sure to import it)
+            List<Booking> bookings = BookingDAO.getInstance().getBookingsBySlotId(slot.getSlotId());
+
+            for (Booking booking : bookings) {
+                hasBookings = true;
+
+                // 4. Get Customer details from UserDAO (Make sure to import it)
+                var customer = com.flipfit.dao.UserDAO.getInstance().getUserById(booking.getUserId());
+                String customerName = (customer != null) ? customer.getFullName() : "Unknown User";
+
+                System.out.printf("%-10d | %-15s | %-20s | %-10s%n",
+                        slot.getSlotId(),
+                        slot.getStartTime(),
+                        customerName,
+                        booking.getStatus());
+            }
+        }
+
+        if (!hasBookings) {
+            System.out.println("   No active bookings found for any slots in this centre.");
+        }
+        System.out.println("================================================================\n");
     }
 
     @Override
