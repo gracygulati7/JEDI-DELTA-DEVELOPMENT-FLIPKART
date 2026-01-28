@@ -2,6 +2,8 @@ package com.flipfit.dao;
 
 import com.flipfit.bean.FlipFitGymOwner;
 import com.flipfit.util.DBUtil;
+import com.flipfit.exceptions.DbConnectionException;
+import com.flipfit.exceptions.UserNotFoundException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -27,8 +29,7 @@ public class OwnerDAO {
         return DBUtil.getConnection();
     }
 
-    public void addOwnerDetails(int ownerId, String pan, String aadhaar, String gstin) {
-        // FIX: Changed ownerid to owner_id and isApproved to is_approved
+    public void addOwnerDetails(int ownerId, String pan, String aadhaar, String gstin) throws DbConnectionException {
         String sql = "INSERT INTO Owner (owner_id, pan, aadhaar, gstin, is_approved) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = getConnection();
@@ -41,16 +42,13 @@ public class OwnerDAO {
             pstmt.setInt(5, 0);
 
             pstmt.executeUpdate();
-            System.out.println("Owner professional details added successfully.");
-
+            
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error adding owner details", e);
         }
     }
 
-    public FlipFitGymOwner getOwnerById(int id) {
-        // FIX: Updated column names to owner_id and aadhaar; Updated table name to users
+    public FlipFitGymOwner getOwnerById(int id) throws DbConnectionException, UserNotFoundException {
         String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin " +
                 "FROM Owner o " +
                 "JOIN users u ON o.owner_id = u.user_id " +
@@ -69,17 +67,16 @@ public class OwnerDAO {
                             rs.getString("aadhaar"),
                             rs.getString("gstin")
                     );
+                } else {
+                    throw new UserNotFoundException("Owner not found with ID: " + id);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error fetching owner by ID", e);
         }
-        return null;
     }
 
-    public FlipFitGymOwner getOwnerByName(String name) {
-        // FIX: Updated column names to match your users table (full_name, user_id)
+    public FlipFitGymOwner getOwnerByName(String name) throws DbConnectionException, UserNotFoundException {
         String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin " +
                 "FROM Owner o " +
                 "JOIN users u ON o.owner_id = u.user_id " +
@@ -97,17 +94,16 @@ public class OwnerDAO {
                             rs.getString("aadhaar"),
                             rs.getString("gstin")
                     );
+                } else {
+                     throw new UserNotFoundException("Owner not found with name: " + name);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error fetching owner by name", e);
         }
-        return null;
     }
 
-    public void addOwner(String name) {
-        // FIX: Updated to users table and full_name column
+    public void addOwner(String name) throws DbConnectionException {
         String sql = "INSERT INTO users (full_name, role) VALUES (?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -115,13 +111,11 @@ public class OwnerDAO {
             pstmt.setString(2, "OWNER");
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error adding owner user", e);
         }
     }
     
-    public void addOwner(String name, String email, String password) {
-        // FIX: Include email and password in the query
+    public void addOwner(String name, String email, String password) throws DbConnectionException {
         String sql = "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -131,21 +125,26 @@ public class OwnerDAO {
             pstmt.setString(4, "OWNER");
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error adding owner credentials", e);
         }
     }
 
-    public FlipFitGymOwner getOrCreateOwnerByName(String name) {
-        FlipFitGymOwner owner = getOwnerByName(name);
-        if (owner != null) return owner;
-        addOwner(name);
-        return getOwnerByName(name);
+    public FlipFitGymOwner getOrCreateOwnerByName(String name) throws DbConnectionException {
+        try {
+            return getOwnerByName(name);
+        } catch (UserNotFoundException e) {
+            addOwner(name);
+            try {
+                return getOwnerByName(name);
+            } catch (UserNotFoundException ex) {
+                // Should technically never happen right after adding
+                throw new DbConnectionException("Error verifying new owner creation", ex);
+            }
+        }
     }
 
-    public Collection<FlipFitGymOwner> getAllOwners() {
+    public Collection<FlipFitGymOwner> getAllOwners() throws DbConnectionException {
         List<FlipFitGymOwner> owners = new ArrayList<>();
-        // FIX: Updated Join and labels
         String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin FROM Owner o JOIN users u ON o.owner_id = u.user_id";
 
         try (Connection conn = getConnection();
@@ -162,14 +161,12 @@ public class OwnerDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error fetching all owners", e);
         }
         return owners;
     }
 
-    public int getNextOwnerId() {
-        // FIX: Changed ownerid to owner_id
+    public int getNextOwnerId() throws DbConnectionException {
         String sql = "SELECT MAX(owner_id) FROM Owner";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
@@ -182,8 +179,7 @@ public class OwnerDAO {
                 return maxId + 1;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new DbConnectionException("Error generating next owner ID", e);
         }
         return 1;
     }

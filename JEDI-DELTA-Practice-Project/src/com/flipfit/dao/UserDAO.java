@@ -1,6 +1,7 @@
 package com.flipfit.dao;
 
 import com.flipfit.util.DBUtil;
+import com.flipfit.exceptions.DbConnectionException;
 import java.sql.*;
 
 public class UserDAO {
@@ -17,8 +18,7 @@ public class UserDAO {
         return instance;
     }
 
-    public void registerUser(int userId, String name, String email, String password, String role) {
-        // Matches your SQL: users (user_id, full_name, email, password, role)
+    public void registerUser(int userId, String name, String email, String password, String role) throws DbConnectionException {
         String sql = "INSERT INTO users (user_id, full_name, email, password, role) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -29,9 +29,12 @@ public class UserDAO {
             ps.setString(5, role);
             ps.executeUpdate();
         } catch (SQLException e) {
-            // Ignore if user already exists during dummy data insertion
-            if (!e.getSQLState().equals("23000")) { 
-                e.printStackTrace();
+            // Check for Duplicate Entry error (SQLState 23000 is standard for integrity constraint violation)
+            if ("23000".equals(e.getSQLState())) {
+                System.out.println("User " + name + " already exists. Skipping.");
+            } else {
+                // For all other errors (Connection failed, syntax error), throw our custom exception
+                throw new DbConnectionException("Error registering user: " + name, e);
             }
         }
     }
