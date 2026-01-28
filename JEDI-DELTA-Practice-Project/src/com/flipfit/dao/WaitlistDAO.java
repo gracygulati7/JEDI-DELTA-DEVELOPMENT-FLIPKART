@@ -20,9 +20,7 @@ public class WaitlistDAO {
 
 	/**
 	 * Returns a thread-safe Singleton instance of WaitlistDAO using double-checked
-	 * locking.
-	 * 
-	 * @return The Singleton instance of WaitlistDAO
+	 * locking. * @return The Singleton instance of WaitlistDAO
 	 */
 	public static WaitlistDAO getInstance() {
 		if (instance == null) {
@@ -36,8 +34,8 @@ public class WaitlistDAO {
 
 	/**
 	 * Helper method to establish a connection to the MySQL database via DBUtil.
+	 * * @return Active Connection object
 	 * 
-	 * @return Active Connection object
 	 * @throws SQLException If database access fails
 	 */
 	private Connection getConnection() throws SQLException {
@@ -45,14 +43,15 @@ public class WaitlistDAO {
 	}
 
 	/**
-	 * Adds a user to the waitlist for a specific gym slot.
+	 * Adds a user to the waitlist for a specific gym slot. * @param slotId The ID
+	 * of the gym slot
 	 * 
-	 * @param slotId The ID of the gym slot
 	 * @param userId The ID of the user joining the waitlist
 	 * @throws RuntimeException if a database error occurs
 	 */
 	public void addToWaitlist(int slotId, int userId) {
-		String query = "INSERT INTO waitlist (slotId, userId) VALUES (?, ?)";
+		// Updated to match SQL schema column names: slot_id, user_id
+		String query = "INSERT INTO waitlist (slot_id, user_id) VALUES (?, ?)";
 		try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setInt(1, slotId);
 			stmt.setInt(2, userId);
@@ -74,10 +73,9 @@ public class WaitlistDAO {
 	 * @throws RuntimeException if a database error occurs during the transaction
 	 */
 	public Integer removeFromWaitlist(int slotId) {
-		// Query to find the oldest entry and lock the row for the duration of the
-		// transaction
-		String selectQuery = "SELECT waitlistId, userId FROM waitlist WHERE slotId = ? ORDER BY waitlistId ASC LIMIT 1 FOR UPDATE";
-		String deleteQuery = "DELETE FROM waitlist WHERE waitlistId = ?";
+		// Updated column names: waitlist_id, user_id, slot_id
+		String selectQuery = "SELECT waitlist_id, user_id FROM waitlist WHERE slot_id = ? ORDER BY waitlist_id ASC LIMIT 1 FOR UPDATE";
+		String deleteQuery = "DELETE FROM waitlist WHERE waitlist_id = ?";
 
 		try (Connection conn = getConnection()) {
 			try {
@@ -88,8 +86,9 @@ public class WaitlistDAO {
 					selectStmt.setInt(1, slotId);
 					try (ResultSet rs = selectStmt.executeQuery()) {
 						if (rs.next()) {
-							int waitlistId = rs.getInt("waitlistId");
-							int userId = rs.getInt("userId");
+							// Updated to match SQL snake_case column names
+							int waitlistId = rs.getInt("waitlist_id");
+							int userId = rs.getInt("user_id");
 
 							// Delete the specific entry by unique ID
 							try (PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
@@ -131,13 +130,14 @@ public class WaitlistDAO {
 	}
 
 	/**
-	 * Checks if any users are currently waiting for a specific slot.
+	 * Checks if any users are currently waiting for a specific slot. * @param
+	 * slotId The ID of the gym slot
 	 * 
-	 * @param slotId The ID of the gym slot
 	 * @return true if the waitlist contains at least one entry, false otherwise
 	 */
 	public boolean hasWaitlistedCustomers(int slotId) {
-		String query = "SELECT COUNT(*) FROM waitlist WHERE slotId = ?";
+		// Updated to match SQL schema column name: slot_id
+		String query = "SELECT COUNT(*) FROM waitlist WHERE slot_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setInt(1, slotId);
 			try (ResultSet rs = stmt.executeQuery()) {
@@ -153,13 +153,14 @@ public class WaitlistDAO {
 	}
 
 	/**
-	 * Calculates the total number of users waiting for a specific slot.
+	 * Calculates the total number of users waiting for a specific slot. * @param
+	 * slotId The ID of the gym slot
 	 * 
-	 * @param slotId The ID of the gym slot
 	 * @return The count of entries in the waitlist for that slot
 	 */
 	public int getWaitlistSize(int slotId) {
-		String query = "SELECT COUNT(*) FROM waitlist WHERE slotId = ?";
+		// Updated to match SQL schema column name: slot_id
+		String query = "SELECT COUNT(*) FROM waitlist WHERE slot_id = ?";
 		try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
 			stmt.setInt(1, slotId);
 			try (ResultSet rs = stmt.executeQuery()) {
