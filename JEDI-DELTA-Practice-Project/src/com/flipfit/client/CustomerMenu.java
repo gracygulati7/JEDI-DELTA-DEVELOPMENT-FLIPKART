@@ -287,6 +287,20 @@ public class CustomerMenu {
 			} else {
 				// Slot had available seats, booking confirmed
 				// selectedSlot.setSeatsAvailable(selectedSlot.getSeatsAvailable() - 1);
+				
+				// >>> START OF ADDED PERSISTENCE LOGIC <<<
+		        // 1. Calculate the new number of seats
+		        int newSeatCount = selectedSlot.getSeatsAvailable() - 1;
+				// 2. Update the Database via the DAO
+		        boolean isDbUpdated = slotDAO.updateSlotSeats(slotId, newSeatCount);
+				// 3. Update the local object so the print statement below reflects the change
+		        if (isDbUpdated) {
+		            selectedSlot.setSeatsAvailable(newSeatCount);
+		        } else {
+		            System.out.println("⚠️ Warning: Booking created but seat count failed to update in DB.");
+		        }
+		        // >>> END OF ADDED PERSISTENCE LOGIC <<<
+				
 				System.out.println("\n✓ BOOKING CONFIRMED");
 				System.out.println("  Booking ID: " + booking.getBookingId());
 				System.out.println("  Center: " + selectedCenter.getGymName() + " (ID: " + centerId + ")");
