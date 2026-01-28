@@ -9,9 +9,7 @@ import java.util.*;
 public class CustomerDAO {
     private static CustomerDAO instance = null;
 
-    private CustomerDAO() {
-        // No need to load the driver here — DBUtil's static block already loads it.
-    }
+    private CustomerDAO() {}
 
     public static CustomerDAO getInstance() {
         if (instance == null) {
@@ -26,44 +24,19 @@ public class CustomerDAO {
         return DBUtil.getConnection();
     }
 
-//    public FlipFitCustomer addCustomer(String fullName) {
-//        String sql = "INSERT INTO customers (full_name) VALUES (?)";
-//        try (Connection conn = getConnection();
-//             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-//            ps.setString(1, fullName);
-//            int affected = ps.executeUpdate();
-//            if (affected == 0) throw new SQLException("Creating customer failed, no rows affected.");
-//            try (ResultSet keys = ps.getGeneratedKeys()) {
-//                if (keys.next()) {
-//                    int id = keys.getInt(1);
-//                    FlipFitCustomer c = new FlipFitCustomer();
-//                    c.setUserId(id);
-//                    c.setFullName(fullName);
-//                    return c;
-//                } else {
-//                    throw new SQLException("Creating customer failed, no ID obtained.");
-//                }
-//            }
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-    
-    public FlipFitCustomer addCustomer(String fullName) {
-        // 1. Create the 'Identity' in the parent table
+    // UPDATED: Now accepts email and password from the Menu instead of hardcoding them
+    public FlipFitCustomer addCustomer(String fullName, String email, String password) {
         String userSql = "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)";
-        // 2. Create the 'Profile' in the child table
         String customerSql = "INSERT INTO customers (customer_id, full_name, role) VALUES (?, ?, ?)";
 
         try (Connection conn = getConnection()) {
-            conn.setAutoCommit(false); // Ensure both happen or neither happens
+            conn.setAutoCommit(false); 
 
             int newId = -1;
             try (PreparedStatement psUser = conn.prepareStatement(userSql, Statement.RETURN_GENERATED_KEYS)) {
                 psUser.setString(1, fullName);
-                // Defaulting email/pass since this is auto-registration during login
-                psUser.setString(2, fullName.toLowerCase().replace(" ", "") + "@flipfit.com");
-                psUser.setString(3, "password123");
+                psUser.setString(2, email);    // Using actual email
+                psUser.setString(3, password); // Using actual password
                 psUser.setString(4, "CUSTOMER");
                 psUser.executeUpdate();
 
@@ -73,14 +46,14 @@ public class CustomerDAO {
 
             if (newId != -1) {
                 try (PreparedStatement psCust = conn.prepareStatement(customerSql)) {
-                    psCust.setInt(1, newId); // Link the child to the parent
+                    psCust.setInt(1, newId); 
                     psCust.setString(2, fullName);
                     psCust.setString(3, "CUSTOMER");
                     psCust.executeUpdate();
                 }
             }
 
-            conn.commit(); // Finalize the "Identity + Profile" creation
+            conn.commit(); 
 
             FlipFitCustomer c = new FlipFitCustomer();
             c.setUserId(newId);
@@ -88,7 +61,23 @@ public class CustomerDAO {
             return c;
 
         } catch (SQLException e) {
-            throw new RuntimeException("Error during customer inheritance setup: " + e.getMessage());
+            throw new RuntimeException("Error during customer registration: " + e.getMessage());
+        }
+    }
+
+    // NEW: Added to fix the "account not found" error during login
+    public FlipFitCustomer getCustomerByEmail(String email) {
+        // We join with users table because that's where the email is stored
+        String sql = "SELECT c.* FROM customers c JOIN users u ON c.customer_id = u.user_id WHERE u.email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapRowToCustomer(rs);
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -104,6 +93,11 @@ public class CustomerDAO {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // Keep this for compatibility, but you should use addCustomer(name, email, pass)
+    public FlipFitCustomer addCustomer(String fullName) {
+        return addCustomer(fullName, fullName.toLowerCase().replace(" ", "") + "@flipfit.com", "password123");
     }
 
     public FlipFitCustomer getOrCreateCustomerByName(String name) {
@@ -150,7 +144,6 @@ public class CustomerDAO {
             ps.setString(2, user.getRole());
             ps.setString(3, user.getContact());
 
-            // paymentType might be nullable — handle accordingly
             if (user.getPaymentType() != 0) ps.setInt(4, user.getPaymentType());
             else ps.setNull(4, Types.INTEGER);
 

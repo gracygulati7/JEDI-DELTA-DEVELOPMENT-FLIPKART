@@ -41,7 +41,6 @@ public class OwnerDAO {
     }
 
     public FlipFitGymOwner getOwnerById(int id) {
-        // UPDATED SQL: Added is_approved and is_validated
         String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin, o.is_approved, o.is_validated " +
                 "FROM Owner o " +
                 "JOIN users u ON o.owner_id = u.user_id " +
@@ -60,7 +59,6 @@ public class OwnerDAO {
                             rs.getString("aadhaar"),
                             rs.getString("gstin")
                     );
-                    // NEW: Set the boolean values from the DB
                     owner.setApproved(rs.getInt("is_approved") == 1);
                     owner.setValidated(rs.getInt("is_validated") == 1);
                     return owner;
@@ -74,8 +72,7 @@ public class OwnerDAO {
     }
 
     public FlipFitGymOwner getOwnerByName(String name) {
-        // FIX: Updated column names to match your users table (full_name, user_id)
-        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin " +
+        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin, o.is_approved, o.is_validated " +
                 "FROM Owner o " +
                 "JOIN users u ON o.owner_id = u.user_id " +
                 "WHERE u.full_name = ?";
@@ -85,13 +82,16 @@ public class OwnerDAO {
             pstmt.setString(1, name);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new FlipFitGymOwner(
+                    FlipFitGymOwner owner = new FlipFitGymOwner(
                             rs.getInt("owner_id"),
                             rs.getString("full_name"),
                             rs.getString("pan"),
                             rs.getString("aadhaar"),
                             rs.getString("gstin")
                     );
+                    owner.setApproved(rs.getInt("is_approved") == 1);
+                    owner.setValidated(rs.getInt("is_validated") == 1);
+                    return owner;
                 }
             }
         } catch (SQLException e) {
@@ -103,8 +103,8 @@ public class OwnerDAO {
     
     
     public FlipFitGymOwner getOwnerByEmail(String email) {
-        // Note: ensure 'owner' matches your DB table name case exactly
-        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin, o.is_approved " +
+        // FIX: Added is_validated to the query so it can be retrieved during login/viewing
+        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin, o.is_approved, o.is_validated " +
                      "FROM Owner o " + 
                      "JOIN users u ON o.owner_id = u.user_id " +
                      "WHERE u.email = ?";
@@ -121,6 +121,8 @@ public class OwnerDAO {
                             rs.getString("gstin")
                     );
                     owner.setApproved(rs.getInt("is_approved") == 1);
+                    // FIX: Set the validation status from DB
+                    owner.setValidated(rs.getInt("is_validated") == 1);
                     return owner;
                 }
             }
@@ -157,7 +159,6 @@ public class OwnerDAO {
     }
     
     public void updateOwnerValidation(int ownerId, boolean isValidated) {
-        // Note: Make sure your 'Owner' table has an 'is_validated' column
         String sql = "UPDATE Owner SET is_validated = ? WHERE owner_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -173,7 +174,6 @@ public class OwnerDAO {
     }
     
     public void addOwner(String name) {
-        // FIX: Updated to users table and full_name column
         String sql = "INSERT INTO users (full_name, role) VALUES (?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -187,7 +187,6 @@ public class OwnerDAO {
     }
     
     public void addOwner(String name, String email, String password) {
-        // FIX: Include email and password in the query
         String sql = "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -211,21 +210,26 @@ public class OwnerDAO {
 
     public Collection<FlipFitGymOwner> getAllOwners() {
         List<FlipFitGymOwner> owners = new ArrayList<>();
-        // FIX: Updated Join and labels
-        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin FROM Owner o JOIN users u ON o.owner_id = u.user_id";
+        // FIX: Added is_approved and is_validated to the SQL Query
+        String sql = "SELECT u.full_name, o.owner_id, o.pan, o.aadhaar, o.gstin, o.is_approved, o.is_validated " +
+                     "FROM Owner o JOIN users u ON o.owner_id = u.user_id";
 
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                owners.add(new FlipFitGymOwner(
+                FlipFitGymOwner owner = new FlipFitGymOwner(
                         rs.getInt("owner_id"),
                         rs.getString("full_name"),
                         rs.getString("pan"),
                         rs.getString("aadhaar"),
                         rs.getString("gstin")
-                ));
+                );
+                // FIX: Map boolean results to the owner object
+                owner.setApproved(rs.getInt("is_approved") == 1);
+                owner.setValidated(rs.getInt("is_validated") == 1);
+                owners.add(owner);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -235,7 +239,6 @@ public class OwnerDAO {
     }
 
     public int getNextOwnerId() {
-        // FIX: Changed ownerid to owner_id
         String sql = "SELECT MAX(owner_id) FROM Owner";
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();

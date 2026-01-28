@@ -1,32 +1,46 @@
+/**
+ * ============================================================================
+ * 1. INTEGRATED LOGIN MENU (client/LoginMenu.java)
+ * ============================================================================
+ */
 package com.flipfit.client;
+
 import java.util.Scanner;
 import com.flipfit.helper.InputValidator;
+import com.flipfit.dao.CustomerDAO;
+import com.flipfit.dao.OwnerDAO;
+import com.flipfit.dao.UserDAO;
+import com.flipfit.bean.FlipFitGymOwner;
+import com.flipfit.bean.FlipFitCustomer;
 
 public class LoginMenu {
     
-    // Instantiate service here or in constructor
     private com.flipfit.business.GymOwnerService gymOwnerService = new com.flipfit.business.GymOwnerServiceImpl();
     
     public int showStartMenu(Scanner sc) {
         System.out.println("\n========== FLIPFIT APPLICATION ==========");
         System.out.println("1. Login");
         System.out.println("2. Register as Gym Owner");
-        System.out.println("3. Exit");
+        System.out.println("3. Register as Gym Customer");
+        System.out.println("4. Exit");
         System.out.print("Enter your choice: ");
         int choice = InputValidator.readInt(sc);
         
         switch (choice) {
-        case 1:
-            return login(sc);
-        case 2:
-            registerOwner(sc);
-            return 1;  
-        case 3:
-            System.out.println("\n--- Exiting application ---");
-            return 0;
-        default:
-            System.out.println("Invalid choice! Please try again.");
-            return showStartMenu(sc);
+            case 1:
+                return login(sc);
+            case 2:
+                registerOwner(sc);
+                return 1;
+            case 3:
+                registerCustomer(sc);
+                return 1;
+            case 4:
+                System.out.println("\n--- Exiting application ---");
+                return 0;
+            default:
+                System.out.println("Invalid choice! Please try again.");
+                return showStartMenu(sc);
         }
     }
     
@@ -36,7 +50,6 @@ public class LoginMenu {
         sc.nextLine(); // Clear buffer
         String name = sc.nextLine();
         
-        // ADDED EMAIL AND PASSWORD INPUTS
         System.out.print("Enter email: ");
         String email = sc.next();
         System.out.print("Enter password: ");
@@ -49,10 +62,34 @@ public class LoginMenu {
         System.out.print("Enter GSTIN: ");
         String gstin = sc.next();
         
-        // Updated service call with 6 parameters
+        // This service call should insert into 'users' table THEN 'Owner' table
         gymOwnerService.registerOwner(name, email, password, pan, aadhaar, gstin);
         
-        System.out.println("\n➤ Registration successful!");
+        System.out.println("\n➤ Gym Owner Registration successful!");
+        System.out.println("➤ Note: Your account is pending admin approval.");
+    }
+
+    private void registerCustomer(Scanner sc) {
+        System.out.println("\n========== CUSTOMER REGISTRATION ==========");
+        System.out.print("Enter full name: ");
+        sc.nextLine(); // buffer
+        String name = sc.nextLine();
+        System.out.print("Enter email: ");
+        String email = sc.next();
+        System.out.print("Enter password: ");
+        String password = sc.next();
+        System.out.print("Enter Contact Number: ");
+        String contact = sc.next();
+
+        // UPDATED: Now passing email and password variables so they aren't hardcoded in DAO
+        CustomerDAO customerDAO = CustomerDAO.getInstance();
+        FlipFitCustomer customer = customerDAO.addCustomer(name, email, password);
+        
+        // Update the dummy values with actual registration data
+        customer.setContact(contact);
+        customerDAO.updateCustomer(customer);
+        
+        System.out.println("\n➤ Customer registration successful!");
         System.out.println("➤ You can now login with email: " + email);
     }
     
@@ -71,54 +108,48 @@ public class LoginMenu {
         int roleChoice = InputValidator.readInt(sc);
         
         switch (roleChoice) {
-        case 1:
-            // Important: Logic should ideally verify password here too
-            com.flipfit.dao.OwnerDAO ownerDAO = com.flipfit.dao.OwnerDAO.getInstance();
-            // Since we use email for login, update your DAO to getOwnerByEmail 
-            // Or use getOwnerByName if you still want to use 'email' as username
-            com.flipfit.bean.FlipFitGymOwner owner = ownerDAO.getOwnerByEmail(email);
-            
-            if (owner == null) {
-                System.out.println("\n✗ Gym Owner account not found for email: " + email);
-                return 1;
-            }
-            
-            // Note: In a real app, you'd check password here: if(!owner.getPassword().equals(password))...
-
-            if (!owner.isApproved()) {
-                System.out.println("\n✗ Your account is still pending admin approval.");
-                return 1;
-            }
-            
-            System.out.println("\n✓ Logged in as Gym Owner: " + owner.getName());
-            GymOwnerMenu gymOwnerMenu = new GymOwnerMenu();
-            gymOwnerMenu.showMenu(sc, owner.getOwnerId());
-            break;
-            
-        case 2:
-            // Similar logic for Customer using customerDAO
-            System.out.println("\n✓ Logged in as Gym Customer");
-            com.flipfit.dao.CustomerDAO customerDAO = com.flipfit.dao.CustomerDAO.getInstance();
-            com.flipfit.bean.FlipFitCustomer customer = customerDAO.getOrCreateCustomerByName(email);
-            CustomerMenu customerMenu = new CustomerMenu();
-            customerMenu.showMenu(sc, customer.getUserId());
-            break;
-            
-        case 3:
-            com.flipfit.dao.AdminDAO adminDAO = com.flipfit.dao.AdminDAO.getInstance();
-            boolean isValidAdmin = adminDAO.login(email, password);
-            if (!isValidAdmin) {
-                System.out.println("\n✗ Invalid admin credentials");
-                return 1;
-            }
-            System.out.println("\n✓ Logged in as Gym Admin");
-            AdminMenu adminMenu = new AdminMenu();
-            adminMenu.showMenu(sc);
-            break;
-            
-        default:
-            System.out.println("Invalid role selected");
-            return login(sc);
+            case 1:
+                OwnerDAO ownerDAO = OwnerDAO.getInstance();
+                FlipFitGymOwner owner = ownerDAO.getOwnerByEmail(email);
+                
+                if (owner == null) {
+                    System.out.println("\n✗ Gym Owner account not found for email: " + email);
+                    return 1;
+                }
+                if (!owner.isApproved()) {
+                    System.out.println("\n✗ Your account is still pending admin approval.");
+                    return 1;
+                }
+                
+                System.out.println("\n✓ Logged in as Gym Owner: " + owner.getName());
+                new GymOwnerMenu().showMenu(sc, owner.getOwnerId());
+                break;
+                
+            case 2:
+                CustomerDAO customerDAO = CustomerDAO.getInstance();
+                // UPDATED: Search by Email instead of Name to fix login failure
+                FlipFitCustomer customer = customerDAO.getCustomerByEmail(email);
+                if (customer == null) {
+                    System.out.println("\n✗ Customer account not found. Please register.");
+                    return 1;
+                }
+                System.out.println("\n✓ Logged in as Gym Customer: " + customer.getFullName());
+                new CustomerMenu().showMenu(sc, customer.getUserId());
+                break;
+                
+            case 3:
+                com.flipfit.dao.AdminDAO adminDAO = com.flipfit.dao.AdminDAO.getInstance();
+                if (!adminDAO.login(email, password)) {
+                    System.out.println("\n✗ Invalid admin credentials");
+                    return 1;
+                }
+                System.out.println("\n✓ Logged in as Gym Admin");
+                new AdminMenu().showMenu(sc);
+                break;
+                
+            default:
+                System.out.println("Invalid role selected");
+                return login(sc);
         }
         
         return showLogoutMenu(sc);
@@ -131,14 +162,6 @@ public class LoginMenu {
         System.out.print("Enter your choice: ");
         int choice = InputValidator.readInt(sc);
         
-        switch (choice) {
-        case 1:
-            return 1; 
-        case 2:
-            return 0; 
-        default:
-            System.out.println("Invalid choice!");
-            return showLogoutMenu(sc);
-        }
+        return (choice == 1) ? 1 : 0;
     }
 }
