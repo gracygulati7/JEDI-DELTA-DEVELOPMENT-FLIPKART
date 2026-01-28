@@ -1,6 +1,7 @@
 package com.flipfit.client;
 
 import com.flipfit.bean.Booking;
+import com.flipfit.bean.FlipFitCustomer;
 import com.flipfit.bean.FlipFitGymCenter;
 import com.flipfit.bean.Slot;
 import com.flipfit.business.BookingService;
@@ -10,6 +11,7 @@ import com.flipfit.business.GymCentreServiceImpl;
 import com.flipfit.business.NotificationServiceImpl;
 import com.flipfit.business.UserService;
 import com.flipfit.business.UserServiceImpl;
+import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.business.CustomerService;
 import com.flipfit.business.CustomerServiceImpl;
@@ -29,8 +31,10 @@ public class CustomerMenu {
 
 	public void showMenu(Scanner sc, int userId) {
 		int choice;
+		FlipFitCustomer customer = CustomerDAO.getInstance().getCustomerById(userId);
 		do {
-			System.out.println("\n===== CUSTOMER MENU =====");
+			System.out.println("Welcome " + (customer != null ? customer.getFullName() : "Customer") + " | " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
 			System.out.println("1. View Gyms");
 			System.out.println("2. View My Bookings");
 			System.out.println("3. Book a Slot");
@@ -287,6 +291,20 @@ public class CustomerMenu {
 			} else {
 				// Slot had available seats, booking confirmed
 				// selectedSlot.setSeatsAvailable(selectedSlot.getSeatsAvailable() - 1);
+				
+				// >>> START OF ADDED PERSISTENCE LOGIC <<<
+		        // 1. Calculate the new number of seats
+		        int newSeatCount = selectedSlot.getSeatsAvailable() - 1;
+				// 2. Update the Database via the DAO
+		        boolean isDbUpdated = slotDAO.updateSlotSeats(slotId, newSeatCount);
+				// 3. Update the local object so the print statement below reflects the change
+		        if (isDbUpdated) {
+		            selectedSlot.setSeatsAvailable(newSeatCount);
+		        } else {
+		            System.out.println("⚠️ Warning: Booking created but seat count failed to update in DB.");
+		        }
+		        // >>> END OF ADDED PERSISTENCE LOGIC <<<
+				
 				System.out.println("\n✓ BOOKING CONFIRMED");
 				System.out.println("  Booking ID: " + booking.getBookingId());
 				System.out.println("  Center: " + selectedCenter.getGymName() + " (ID: " + centerId + ")");
