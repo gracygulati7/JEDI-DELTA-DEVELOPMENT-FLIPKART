@@ -239,4 +239,19 @@ public class SlotDAO {
         
         return slot;
     }
+
+    public boolean updateSlotSeats(int slotId, int newAvailableSeats) {
+        String query = "UPDATE slots SET available_seats = ? WHERE slot_id = ?";
+        
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, newAvailableSeats);
+            stmt.setInt(2, slotId);
+            
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
