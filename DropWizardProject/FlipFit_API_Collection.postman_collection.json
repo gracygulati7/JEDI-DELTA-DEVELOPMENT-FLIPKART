@@ -1,0 +1,582 @@
+{
+  "info": {
+    "_postman_id": "flipfit-api-collection",
+    "name": "FlipFit REST API",
+    "description": "Complete FlipFit API testing collection with all endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "AUTH - Authentication & Registration",
+      "item": [
+        {
+          "name": "1. Register Gym Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Gym Owner\",\n  \"email\": \"owner@flipfit.com\",\n  \"password\": \"password123\",\n  \"pan\": \"ABCDE1234F\",\n  \"aadhaar\": \"123456789012\",\n  \"gstin\": \"27AAPFU0205R1Z0\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/register/owner",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "register", "owner"]
+            }
+          }
+        },
+        {
+          "name": "2. Register Gym Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Customer\",\n  \"email\": \"customer@flipfit.com\",\n  \"password\": \"password123\",\n  \"contact\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/register/customer",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "register", "customer"]
+            }
+          }
+        },
+        {
+          "name": "3. Login as Gym Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@flipfit.com\",\n  \"password\": \"password123\",\n  \"role\": \"owner\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "4. Login as Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@flipfit.com\",\n  \"password\": \"password123\",\n  \"role\": \"customer\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "5. Login as Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@flipfit.com\",\n  \"password\": \"admin123\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GYM OWNER - Gym Operations",
+      "item": [
+        {
+          "name": "1. View My Centres",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/gym-owner/1/centres",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["gym-owner", "1", "centres"]
+            }
+          }
+        },
+        {
+          "name": "2. Add Gym Centre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gymName\": \"FitHub Downtown\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"pincode\": 400001,\n  \"capacity\": 100\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/gym-owner/1/centres",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["gym-owner", "1", "centres"]
+            }
+          }
+        },
+        {
+          "name": "3. Add Slot to Centre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-02-15\",\n  \"startTime\": \"06:00\",\n  \"endTime\": \"07:00\",\n  \"seats\": 20\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/gym-owner/1/centres/1/slots",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["gym-owner", "1", "centres", "1", "slots"]
+            }
+          }
+        },
+        {
+          "name": "4. View Slots in Centre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/gym-owner/1/centres/1/slots",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["gym-owner", "1", "centres", "1", "slots"]
+            }
+          }
+        },
+        {
+          "name": "5. View Customers in Centre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/gym-owner/1/centres/1/customers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["gym-owner", "1", "centres", "1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "6. View Owner Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/gym-owner/1/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["gym-owner", "1", "profile"]
+            }
+          }
+        },
+        {
+          "name": "7. Edit Owner Profile",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/gym-owner/1/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["gym-owner", "1", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CUSTOMER - Booking & Profile",
+      "item": [
+        {
+          "name": "1. View All Gyms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/gyms",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "gyms"]
+            }
+          }
+        },
+        {
+          "name": "2. View Available Slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/available-slots",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "available-slots"]
+            }
+          }
+        },
+        {
+          "name": "3. View My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/1/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "1", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "4. Book a Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"centreId\": 1,\n  \"date\": \"2026-02-15\",\n  \"slotId\": 1,\n  \"amount\": 500\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/customer/1/bookings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "1", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "5. Cancel Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/1/bookings/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "1", "bookings", "1"]
+            }
+          }
+        },
+        {
+          "name": "6. View Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/1/notifications",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "1", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "7. View Payment Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/1/payment-info",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "1", "payment-info"]
+            }
+          }
+        },
+        {
+          "name": "8. View Customer Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/1/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "1", "profile"]
+            }
+          }
+        },
+        {
+          "name": "9. Edit Customer Profile",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/customer/1/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["customer", "1", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ADMIN - Management",
+      "item": [
+        {
+          "name": "1. View All Gym Owners",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-owners",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-owners"]
+            }
+          }
+        },
+        {
+          "name": "2. Approve Gym Owner",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-owners/1/approve",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-owners", "1", "approve"]
+            }
+          }
+        },
+        {
+          "name": "3. Validate Gym Owner",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-owners/1/validate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-owners", "1", "validate"]
+            }
+          }
+        },
+        {
+          "name": "4. Delete Gym Owner",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-owners/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-owners", "1"]
+            }
+          }
+        },
+        {
+          "name": "5. View All Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/customers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "customers"]
+            }
+          }
+        },
+        {
+          "name": "6. View All Gym Centers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-centers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-centers"]
+            }
+          }
+        },
+        {
+          "name": "7. Add Gym Center",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"centerId\": 2,\n  \"gymName\": \"PowerFit East\",\n  \"city\": \"Delhi\",\n  \"state\": \"Delhi\",\n  \"pincode\": 110001,\n  \"capacity\": 150\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-centers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-centers"]
+            }
+          }
+        },
+        {
+          "name": "8. Add Slot Info",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotId\": 2,\n  \"startTime\": \"07:00\",\n  \"endTime\": \"08:00\",\n  \"seats\": 25\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-centers/1/slots",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-centers", "1", "slots"]
+            }
+          }
+        },
+        {
+          "name": "9. View Slots for Center",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/gym-centers/1/slots",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "gym-centers", "1", "slots"]
+            }
+          }
+        },
+        {
+          "name": "10. View Available Slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/available-slots",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "available-slots"]
+            }
+          }
+        },
+        {
+          "name": "11. View Admin Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/1/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "1", "profile"]
+            }
+          }
+        },
+        {
+          "name": "12. Edit Admin Profile",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/admin/1/profile",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["admin", "1", "profile"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
